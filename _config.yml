@@ -17,7 +17,7 @@ minimal_mistakes_skin    : "dirt" # "air", "aqua", "contrast", "dark", "dirt", "
 # Site Settings
 locale                   : "ko-KR"
 rtl                      : # true, false (default) # turns direction of the page into right to left for RTL languages
-title                    : "Cana Code"
+title                    : "카나코드"
 title_separator          : "|"
 subtitle                 : "Cana’s Dev Log" # site tagline that appears below site title in masthead
 name                     : "Cana Code"
@@ -113,7 +113,7 @@ analytics:
 
 # Site Author
 author:
-  name             : "카나"
+  name             : "CanaCode"
   avatar           : # path of avatar image, e.g. "/assets/images/bio-photo.jpg"
   bio              : "I am an amazing person"
   # location         : "Somewhere"
