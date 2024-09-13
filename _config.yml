@@ -114,7 +114,7 @@ analytics:
 # Site Author
 author:
   name             : "Cana Code"
-  avatar           : # path of avatar image, e.g. "/assets/images/bio-photo.jpg"
+  avatar           : "/assets/images/CanaCode.png"
   bio              : "I am an amazing person"
   # location         : "Somewhere"
   # email            : "canach3@gmail.com"
