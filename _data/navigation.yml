@@ -15,7 +15,6 @@ docs:
       - title: "Tag"
         url: /tags/
         
-docs:
   - title: "대목차2"
     children:
       - title: "category"
