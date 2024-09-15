@@ -324,3 +324,6 @@ defaults:
       share: true
       related: true
       show_date: true
+      toc: true # 블로그 글 우측 글 목차 표시 여부
+      toc_sticky: true # 목차 고정 여부
+      toc_label: 목차 # 목차 이름 
