@@ -13,3 +13,10 @@ body:has(.post-tail-wrapper) main {
   max-width: 100% !important;
   flex: 0 0 100% !important;
 }
+
+/* 포스트 상단 표지 이미지 세로 영역 늘리기 */
+.preview-img {
+  aspect-ratio: 16 / 9 !important; /* 비율 수정 (기본값은 1.91 / 1) */
+  object-fit: cover !important;    /* 빈 공간 없이 꽉 채우기 유지 */
+  max-height: none !important;     /* 혹시 모를 최대 높이 제한 해제 */
+}
