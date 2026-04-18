@@ -1,5 +1,8 @@
 ---
 ---
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap'); 
+
 @import 'main';
 
 /* 1. 글(Post) 페이지에서 오른쪽 패널 전체를 숨겨서 자리 비우기 */
@@ -19,4 +22,14 @@ body:has(.post-tail-wrapper) main {
   aspect-ratio: 16 / 9 !important; /* 비율 수정 (기본값은 1.91 / 1) */
   object-fit: cover !important;    /* 빈 공간 없이 꽉 채우기 유지 */
   max-height: none !important;     /* 혹시 모를 최대 높이 제한 해제 */
+}
+
+/*폰트 덮어쓰기 (파일 맨 아래에 추가) */
+body, h1, h2, h3, h4, h5, h6, p, a, li {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+}
+
+/* 코드 블록(Syntax) 글꼴도 코딩용으로 변경하고 싶다면 추가 */
+code, pre {
+  font-family: 'JetBrains Mono', monospace !important;
 }
