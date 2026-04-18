@@ -10,7 +10,7 @@ body:has(.post-tail-wrapper) #panel-wrapper {
 
 /* 2. 오른쪽이 비워진 만큼 본문(main) 영역을 100%로 꽉 차게 넓히기 */
 body:has(.post-tail-wrapper) main {
-  max-width: 100% !important;
+  max-width: 95% !important;
   flex: 0 0 100% !important;
 }
 
