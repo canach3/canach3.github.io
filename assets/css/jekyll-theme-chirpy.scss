@@ -3,7 +3,11 @@
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap'); 
 
-@import 'main';
+{% if jekyll.environment == 'production' %}
+  @import 'main.bundle';
+{% else %}
+  @import 'main';
+{% endif %}
 
 /* 1. 글(Post) 페이지에서 오른쪽 패널 전체를 숨겨서 자리 비우기 */
 /* (.post-tail-wrapper는 글 페이지 하단에만 있는 고유 클래스라 홈 화면과 완벽히 분리됩니다) */
