@@ -1,0 +1,9 @@
+{% if site.comments.provider == 'disqus' %}
+  {% include comments/disqus.html %}
+{% elsif site.comments.provider == 'utterances' %}
+  {% include comments/utterances.html %}
+{% elsif site.comments.provider == 'giscus' %}
+  {% include comments/giscus.html %}
+{% elsif site.comments.provider == 'firebase' %}
+  {% include comments/firebase.html %}
+{% endif %}

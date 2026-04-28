@@ -1,0 +1,148 @@
+<div id="firebase-comments-container" style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--main-border-color);">
+  <h3>댓글 <span id="comment-count">0</span></h3>
+  
+  <div id="auth-section" style="margin-bottom: 1.5rem;">
+    <div id="logged-out-view">
+      <button id="btn-login-google" class="btn btn-primary">Google 로그인</button>
+      <button id="btn-login-anon" class="btn btn-secondary">익명으로 작성</button>
+    </div>
+    <div id="logged-in-view" style="display: none; align-items: center; gap: 10px;">
+      <img id="user-avatar" src="" alt="avatar" style="width: 32px; height: 32px; border-radius: 50%;">
+      <span id="user-name" style="font-weight: bold;"></span>
+      <button id="btn-logout" class="btn btn-outline-secondary btn-sm">로그아웃</button>
+    </div>
+  </div>
+
+  <div id="comment-form-section" style="display: none; margin-bottom: 2rem;">
+    <textarea id="comment-input" rows="3" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid var(--main-border-color); background: var(--main-bg);" placeholder="댓글을 남겨보세요..."></textarea>
+    <button id="btn-submit-comment" class="btn btn-primary" style="margin-top: 10px; float: right;">댓글 등록</button>
+    <div style="clear: both;"></div>
+  </div>
+
+  <div id="comments-list" style="display: flex; flex-direction: column; gap: 1.5rem;">
+    <p id="loading-text">댓글을 불러오는 중입니다...</p>
+  </div>
+</div>
+
+<script type="module">
+  // 1. Firebase SDK 임포트 (버전 10.x 기준)
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+  import { getAuth, signInWithPopup, GoogleAuthProvider, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+  import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+  // 2. Firebase 설정 (1단계에서 복사한 본인의 config로 교체하세요!)
+  const firebaseConfig = {
+    apiKey: "AIzaSyAZT1G_bZ0nkBhFLLqL7BZBjNaDVNV_4Zo",
+    authDomain: "canacode-comments.firebaseapp.com",
+    projectId: "canacode-comments",
+    storageBucket: "canacode-comments.firebasestorage.app",
+    messagingSenderId: "800456034298",
+    appId: "1:800456034298:web:8954c73377c95499ab8643"
+  };
+
+  // 초기화
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  // 현재 포스트의 고유 URL을 댓글 그룹의 ID로 사용
+  const postId = "{{ page.url }}"; 
+
+  // DOM 요소 선택
+  const loggedOutView = document.getElementById('logged-out-view');
+  const loggedInView = document.getElementById('logged-in-view');
+  const commentFormSection = document.getElementById('comment-form-section');
+  const commentsList = document.getElementById('comments-list');
+  const userNameEl = document.getElementById('user-name');
+  const userAvatarEl = document.getElementById('user-avatar');
+  const commentInput = document.getElementById('comment-input');
+  const loadingText = document.getElementById('loading-text');
+
+  let currentUser = null;
+
+  // 3. 인증 상태 감지 옵저버
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      currentUser = user;
+      loggedOutView.style.display = 'none';
+      loggedInView.style.display = 'flex';
+      commentFormSection.style.display = 'block';
+      
+      // 익명 유저와 소셜 로그인 유저 구분 표시
+      userNameEl.textContent = user.isAnonymous ? '익명 사용자' : user.displayName;
+      userAvatarEl.src = user.photoURL || '/assets/img/profile.png'; // 익명은 기본 프로필
+    } else {
+      currentUser = null;
+      loggedOutView.style.display = 'block';
+      loggedInView.style.display = 'none';
+      commentFormSection.style.display = 'none';
+    }
+  });
+
+  // 4. 로그인 / 로그아웃 기능
+  document.getElementById('btn-login-google').addEventListener('click', () => {
+    signInWithPopup(auth, new GoogleAuthProvider()).catch(err => console.error("구글 로그인 실패:", err));
+  });
+
+  document.getElementById('btn-login-anon').addEventListener('click', () => {
+    signInAnonymously(auth).catch(err => console.error("익명 로그인 실패:", err));
+  });
+
+  document.getElementById('btn-logout').addEventListener('click', () => {
+    signOut(auth);
+  });
+
+  // 5. 댓글 불러오기 (실시간 리스너)
+  const q = query(collection(db, "comments"), where("postId", "==", postId), orderBy("createdAt", "desc"));
+  
+  onSnapshot(q, (snapshot) => {
+    commentsList.innerHTML = ''; // 초기화
+    document.getElementById('comment-count').textContent = snapshot.size;
+
+    if (snapshot.empty) {
+      commentsList.innerHTML = '<p>첫 댓글을 남겨보세요!</p>';
+      return;
+    }
+
+    snapshot.forEach((doc) => {
+      const data = doc.data();
+      const dateStr = data.createdAt ? data.createdAt.toDate().toLocaleString() : '방금 전';
+      
+      const commentHtml = `
+        <div style="display: flex; gap: 10px;">
+          <img src="${data.photoURL || '/assets/img/profile.png'}" style="width: 40px; height: 40px; border-radius: 50%;">
+          <div>
+            <div style="font-size: 0.9em; color: var(--text-muted); margin-bottom: 4px;">
+              <strong style="color: var(--text-color);">${data.displayName}</strong> · ${dateStr}
+            </div>
+            <div style="white-space: pre-wrap;">${data.content}</div>
+          </div>
+        </div>
+      `;
+      commentsList.insertAdjacentHTML('beforeend', commentHtml);
+    });
+  });
+
+  // 6. 댓글 쓰기 기능
+  document.getElementById('btn-submit-comment').addEventListener('click', async () => {
+    const text = commentInput.value.trim();
+    if (!text) return alert('댓글 내용을 입력하세요.');
+    if (!currentUser) return alert('로그인이 필요합니다.');
+
+    try {
+      await addDoc(collection(db, "comments"), {
+        postId: postId,
+        uid: currentUser.uid,
+        displayName: currentUser.isAnonymous ? '익명 사용자' : currentUser.displayName,
+        photoURL: currentUser.photoURL || null,
+        content: text,
+        createdAt: serverTimestamp(),
+        isAnonymous: currentUser.isAnonymous
+      });
+      commentInput.value = ''; // 입력창 초기화
+    } catch (error) {
+      console.error("댓글 작성 에러:", error);
+      alert('댓글을 저장하는 중 오류가 발생했습니다.');
+    }
+  });
+</script>
