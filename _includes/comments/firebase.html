@@ -1,148 +1,630 @@
-<div id="firebase-comments-container" style="margin-top: 3rem; padding-top: 2rem; border-top: 1px solid var(--main-border-color);">
-  <h3>댓글 <span id="comment-count">0</span></h3>
-  
-  <div id="auth-section" style="margin-bottom: 1.5rem;">
-    <div id="logged-out-view">
-      <button id="btn-login-google" class="btn btn-primary">Google 로그인</button>
-      <button id="btn-login-anon" class="btn btn-secondary">익명으로 작성</button>
+<style>
+  .comments-container {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--main-border-color, #e1e4e8);
+    font-family:
+      -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+      Arial, sans-serif;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .comments-header {
+    margin-bottom: 1.5rem;
+  }
+  .comments-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-color, #24292e);
+    margin: 0;
+  }
+  .comments-count {
+    color: var(--text-muted-color, #6a737d);
+    font-weight: 400;
+    font-size: 1rem;
+    margin-left: 0.25rem;
+  }
+  .comment-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    background-color: var(--main-border-color, #e1e4e8);
+  }
+  .form-inner {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .comment-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--main-border-color, #e1e4e8);
+    border-radius: 8px;
+    background-color: var(--main-bg, #ffffff);
+    color: var(--text-color, #24292e);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    resize: vertical;
+    box-sizing: border-box;
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+  .comment-input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+  }
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+  }
+  .btn-submit {
+    padding: 0.5rem 1.25rem;
+    background-color: var(--btn-bg-color, #24292e);
+    color: #ffffff;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  .btn-submit:hover {
+    background-color: var(--btn-hover-color, #0366d6);
+  }
+  .comment-list,
+  .reply-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .comment-item {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .comment-content {
+    flex-grow: 1;
+  }
+  .comment-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+  }
+  .comment-author {
+    font-weight: 600;
+    color: var(--text-color, #24292e);
+    font-size: 0.95rem;
+  }
+  .badge-author {
+    background-color: #6c757d;
+    color: white;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .comment-date {
+    color: var(--text-muted-color, #6a737d);
+    font-size: 0.85rem;
+  }
+  .comment-text {
+    margin: 0.25rem 0 0.5rem 0;
+    color: var(--text-color, #24292e);
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+  .comment-actions {
+    display: flex;
+    gap: 1rem;
+  }
+  .btn-reply {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--text-muted-color, #6a737d);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+  .btn-reply:hover {
+    color: var(--link-color, #007bff);
+    text-decoration: underline;
+  }
+  .comment-writing-section {
+    margin-bottom: 2.5rem;
+  }
+  .comment-form-wrapper {
+    display: flex;
+    gap: 1rem;
+  }
+  .auth-tabs {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--main-border-color, #e1e4e8);
+  }
+  .auth-tab {
+    background: none;
+    border: none;
+    padding: 0.5rem 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-muted-color, #6a737d);
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s ease;
+  }
+  .auth-tab:hover,
+  .auth-tab.active {
+    color: var(--text-color, #24292e);
+  }
+  .auth-tab.active::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--text-color, #24292e);
+  }
+  .auth-area {
+    margin-bottom: 0.75rem;
+  }
+  .social-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .btn-social {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    border: 1px solid var(--main-border-color, #e1e4e8);
+    border-radius: 6px;
+    background-color: var(--main-bg, #ffffff);
+    color: var(--text-color, #24292e);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  .btn-social:hover {
+    background-color: var(--main-border-color, #e1e4e8);
+  }
+  .logged-in-text {
+    font-size: 0.9rem;
+    color: var(--text-color, #24292e);
+  }
+  .btn-logout {
+    background: none;
+    border: none;
+    padding: 0;
+    color: var(--text-muted-color, #6a737d);
+    font-size: 0.85rem;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  .anonymous-inputs {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .anon-input {
+    flex: 1;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--main-border-color, #e1e4e8);
+    border-radius: 6px;
+    background-color: var(--main-bg, #ffffff);
+    color: var(--text-color, #24292e);
+    font-size: 0.9rem;
+  }
+  .anon-input:focus {
+    outline: none;
+    border-color: #007bff;
+  }
+  .comment-input:disabled,
+  .btn-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: var(--main-border-color, #e1e4e8);
+  }
+  [data-mode="dark"] .comments-container {
+    --main-border-color: #3e3e42;
+    --text-color: #d1d5da;
+    --text-muted-color: #8b949e;
+    --main-bg: #212121;
+    --btn-bg-color: #3e3e42;
+    --btn-hover-color: #58a6ff;
+    --link-color: #58a6ff;
+  }
+</style>
+
+<div id="custom-comments" class="comments-container">
+  <div class="comments-header">
+    <h3 class="comments-title">
+      Comments <span class="comments-count" id="comment-count">0</span>
+    </h3>
+  </div>
+
+  <div class="comment-writing-section">
+    <div class="auth-tabs">
+      <button type="button" class="auth-tab active" data-type="social">
+        소셜 로그인
+      </button>
+      <button type="button" class="auth-tab" data-type="anonymous">
+        비회원 (익명)
+      </button>
     </div>
-    <div id="logged-in-view" style="display: none; align-items: center; gap: 10px;">
-      <img id="user-avatar" src="" alt="avatar" style="width: 32px; height: 32px; border-radius: 50%;">
-      <span id="user-name" style="font-weight: bold;"></span>
-      <button id="btn-logout" class="btn btn-outline-secondary btn-sm">로그아웃</button>
+
+    <div class="comment-form-wrapper">
+      <img
+        src="https://ui-avatars.com/api/?name=U&background=f0f0f0&color=333"
+        alt="My Avatar"
+        class="comment-avatar"
+        id="form-avatar"
+      />
+
+      <div class="form-inner">
+        <div id="social-area" class="auth-area active">
+          <div id="social-login-prompt" class="social-actions">
+            <button type="button" class="btn-social" id="btn-google-login">
+              <svg viewBox="0 0 24 24" width="16" height="16">
+                <path
+                  fill="#4285F4"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                />
+              </svg>
+              Google 로그인
+            </button>
+            <button type="button" class="btn-social" id="btn-github-login">
+              <svg viewBox="0 0 24 24" width="16" height="16">
+                <path
+                  fill="currentColor"
+                  d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
+                />
+              </svg>
+              GitHub 로그인
+            </button>
+          </div>
+
+          <div
+            id="social-user-info"
+            class="social-actions"
+            style="display: none"
+          >
+            <span class="logged-in-text"
+              >접속중: <strong id="current-username"></strong
+            ></span>
+            <button type="button" class="btn-logout" id="btn-logout">
+              로그아웃
+            </button>
+          </div>
+        </div>
+
+        <div id="anonymous-area" class="auth-area" style="display: none">
+          <div class="anonymous-inputs">
+            <input
+              type="text"
+              id="anon-nickname"
+              class="anon-input"
+              placeholder="닉네임"
+            />
+            <input
+              type="password"
+              id="anon-password"
+              class="anon-input"
+              placeholder="비밀번호 (수정/삭제용)"
+            />
+          </div>
+        </div>
+
+        <textarea
+          id="comment-textarea"
+          class="comment-input"
+          placeholder="글에 대한 자유로운 의견을 남겨주세요..."
+          rows="3"
+          disabled
+        ></textarea>
+        <div class="form-actions">
+          <button
+            type="button"
+            class="btn-submit"
+            id="btn-submit-comment"
+            disabled
+          >
+            댓글 남기기
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div id="comment-form-section" style="display: none; margin-bottom: 2rem;">
-    <textarea id="comment-input" rows="3" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid var(--main-border-color); background: var(--main-bg);" placeholder="댓글을 남겨보세요..."></textarea>
-    <button id="btn-submit-comment" class="btn btn-primary" style="margin-top: 10px; float: right;">댓글 등록</button>
-    <div style="clear: both;"></div>
-  </div>
-
-  <div id="comments-list" style="display: flex; flex-direction: column; gap: 1.5rem;">
-    <p id="loading-text">댓글을 불러오는 중입니다...</p>
-  </div>
+  <ul class="comment-list" id="comments-list-ul">
+    <li
+      class="comment-item"
+      style="
+        color: var(--text-muted-color);
+        text-align: center;
+        width: 100%;
+        padding: 20px;
+      "
+    >
+      댓글을 불러오는 중입니다...
+    </li>
+  </ul>
 </div>
 
 <script type="module">
-  // 1. Firebase SDK 임포트 (버전 10.x 기준)
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-  import { getAuth, signInWithPopup, GoogleAuthProvider, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-  import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+  import {
+    getAuth,
+    signInWithPopup,
+    GoogleAuthProvider,
+    GithubAuthProvider,
+    signInAnonymously,
+    onAuthStateChanged,
+    signOut,
+  } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+  import {
+    getFirestore,
+    collection,
+    addDoc,
+    query,
+    where,
+    orderBy,
+    onSnapshot,
+    serverTimestamp,
+  } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-  // 2. Firebase 설정 (1단계에서 복사한 본인의 config로 교체하세요!)
   const firebaseConfig = {
-    apiKey: "AIzaSyAZT1G_bZ0nkBhFLLqL7BZBjNaDVNV_4Zo",
-    authDomain: "canacode-comments.firebaseapp.com",
-    projectId: "canacode-comments",
-    storageBucket: "canacode-comments.firebasestorage.app",
-    messagingSenderId: "800456034298",
-    appId: "1:800456034298:web:8954c73377c95499ab8643"
+    // 🚨 이전 단계에서 발급받은 본인 프로젝트의 정보로 반드시 교체하세요!
+    apiKey: "AIzaSy...",
+    authDomain: "본인프로젝트.firebaseapp.com",
+    projectId: "본인프로젝트",
+    storageBucket: "본인프로젝트.appspot.com",
+    messagingSenderId: "123...",
+    appId: "1:123...",
   };
 
-  // 초기화
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  // 현재 포스트의 고유 URL을 댓글 그룹의 ID로 사용
-  const postId = "{{ page.url }}"; 
+  const postId = "{{ page.url }}";
+  const defaultAvatar =
+    "https://ui-avatars.com/api/?name=U&background=f0f0f0&color=333";
 
-  // DOM 요소 선택
-  const loggedOutView = document.getElementById('logged-out-view');
-  const loggedInView = document.getElementById('logged-in-view');
-  const commentFormSection = document.getElementById('comment-form-section');
-  const commentsList = document.getElementById('comments-list');
-  const userNameEl = document.getElementById('user-name');
-  const userAvatarEl = document.getElementById('user-avatar');
-  const commentInput = document.getElementById('comment-input');
-  const loadingText = document.getElementById('loading-text');
+  // DOM 제어 변수 설정
+  const tabs = document.querySelectorAll(".auth-tab");
+  const socialArea = document.getElementById("social-area");
+  const anonymousArea = document.getElementById("anonymous-area");
+  const textarea = document.getElementById("comment-textarea");
+  const submitBtn = document.getElementById("btn-submit-comment");
+  const avatar = document.getElementById("form-avatar");
 
+  const socialPrompt = document.getElementById("social-login-prompt");
+  const socialUserInfo = document.getElementById("social-user-info");
+  const currentUsername = document.getElementById("current-username");
+  const anonNickname = document.getElementById("anon-nickname");
+  const anonPassword = document.getElementById("anon-password");
+
+  const commentsList = document.getElementById("comments-list-ul");
+  const commentCountEl = document.getElementById("comment-count");
+
+  let currentTab = "social";
   let currentUser = null;
 
-  // 3. 인증 상태 감지 옵저버
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      currentUser = user;
-      loggedOutView.style.display = 'none';
-      loggedInView.style.display = 'flex';
-      commentFormSection.style.display = 'block';
-      
-      // 익명 유저와 소셜 로그인 유저 구분 표시
-      userNameEl.textContent = user.isAnonymous ? '익명 사용자' : user.displayName;
-      userAvatarEl.src = user.photoURL || '/assets/img/profile.png'; // 익명은 기본 프로필
+  // 1. 탭 전환 제어
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", (e) => {
+      tabs.forEach((t) => t.classList.remove("active"));
+      e.target.classList.add("active");
+      currentTab = e.target.getAttribute("data-type");
+      updateUI();
+    });
+  });
+
+  // 2. UI 상태 업데이트 로직 (로그인 여부, 탭 전환에 따라 동작)
+  function updateUI() {
+    if (currentTab === "social") {
+      socialArea.style.display = "block";
+      anonymousArea.style.display = "none";
+      if (currentUser && !currentUser.isAnonymous) {
+        socialPrompt.style.display = "none";
+        socialUserInfo.style.display = "flex";
+        currentUsername.textContent = currentUser.displayName || "User";
+        avatar.src =
+          currentUser.photoURL ||
+          `https://ui-avatars.com/api/?name=${currentUser.displayName}&background=random`;
+        toggleInputState(true);
+      } else {
+        socialPrompt.style.display = "flex";
+        socialUserInfo.style.display = "none";
+        avatar.src = defaultAvatar;
+        toggleInputState(false);
+      }
     } else {
-      currentUser = null;
-      loggedOutView.style.display = 'block';
-      loggedInView.style.display = 'none';
-      commentFormSection.style.display = 'none';
+      socialArea.style.display = "none";
+      anonymousArea.style.display = "block";
+      avatar.src = defaultAvatar;
+      toggleInputState(true);
     }
+    // 🔥 [중요] F12를 켜야 화면이 나오던 버그 방지를 위해 DOM 업데이트 후 강제 리플로우 유도
+    window.dispatchEvent(new Event("resize"));
+  }
+
+  function toggleInputState(isEnabled) {
+    if (isEnabled) {
+      textarea.removeAttribute("disabled");
+      submitBtn.removeAttribute("disabled");
+      textarea.placeholder = "글에 대한 자유로운 의견을 남겨주세요...";
+    } else {
+      textarea.setAttribute("disabled", "true");
+      submitBtn.setAttribute("disabled", "true");
+      textarea.placeholder = "소셜 계정으로 로그인 후 댓글을 남길 수 있습니다.";
+    }
+  }
+
+  // 3. 인증 옵저버 (로그인 상태를 감시)
+  onAuthStateChanged(auth, (user) => {
+    currentUser = user;
+    updateUI();
   });
 
-  // 4. 로그인 / 로그아웃 기능
-  document.getElementById('btn-login-google').addEventListener('click', () => {
-    signInWithPopup(auth, new GoogleAuthProvider()).catch(err => console.error("구글 로그인 실패:", err));
+  // 4. 소셜 로그인 기능 연동 (Google, GitHub 모두 연결)
+  document.getElementById("btn-google-login").addEventListener("click", () => {
+    signInWithPopup(auth, new GoogleAuthProvider()).catch((err) =>
+      console.error("Google 로그인 에러:", err),
+    );
   });
 
-  document.getElementById('btn-login-anon').addEventListener('click', () => {
-    signInAnonymously(auth).catch(err => console.error("익명 로그인 실패:", err));
+  document.getElementById("btn-github-login").addEventListener("click", () => {
+    signInWithPopup(auth, new GithubAuthProvider()).catch((err) =>
+      console.error("GitHub 로그인 에러:", err),
+    );
   });
 
-  document.getElementById('btn-logout').addEventListener('click', () => {
+  document.getElementById("btn-logout").addEventListener("click", () => {
     signOut(auth);
   });
 
-  // 5. 댓글 불러오기 (실시간 리스너)
-  const q = query(collection(db, "comments"), where("postId", "==", postId), orderBy("createdAt", "desc"));
-  
+  // 악성 스크립트 방지(XSS)를 위한 특수문자 변환
+  const escapeHtml = (unsafe) => {
+    return (unsafe || "")
+      .toString()
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  };
+
+  // 5. 실시간 댓글 불러오기 로직
+  const q = query(
+    collection(db, "comments"),
+    where("postId", "==", postId),
+    orderBy("createdAt", "desc"),
+  );
+
   onSnapshot(q, (snapshot) => {
-    commentsList.innerHTML = ''; // 초기화
-    document.getElementById('comment-count').textContent = snapshot.size;
+    commentsList.innerHTML = "";
+    commentCountEl.textContent = snapshot.size;
 
     if (snapshot.empty) {
-      commentsList.innerHTML = '<p>첫 댓글을 남겨보세요!</p>';
+      commentsList.innerHTML =
+        '<li class="comment-item" style="color: var(--text-muted-color); text-align: center; width:100%; padding: 20px;">첫 댓글을 남겨주세요!</li>';
+      window.dispatchEvent(new Event("resize"));
       return;
     }
 
     snapshot.forEach((doc) => {
       const data = doc.data();
-      const dateStr = data.createdAt ? data.createdAt.toDate().toLocaleString() : '방금 전';
-      
+      const dateStr = data.createdAt
+        ? data.createdAt.toDate().toLocaleString()
+        : "방금 전";
+
       const commentHtml = `
-        <div style="display: flex; gap: 10px;">
-          <img src="${data.photoURL || '/assets/img/profile.png'}" style="width: 40px; height: 40px; border-radius: 50%;">
-          <div>
-            <div style="font-size: 0.9em; color: var(--text-muted); margin-bottom: 4px;">
-              <strong style="color: var(--text-color);">${data.displayName}</strong> · ${dateStr}
+        <li class="comment-item">
+          <img src="${escapeHtml(data.photoURL) || defaultAvatar}" alt="Avatar" class="comment-avatar">
+          <div class="comment-content">
+            <div class="comment-meta">
+              <span class="comment-author">${escapeHtml(data.displayName)}</span>
+              ${data.isAnonymous ? '<span class="badge-author">익명</span>' : ""}
+              <span class="comment-date">${dateStr}</span>
             </div>
-            <div style="white-space: pre-wrap;">${data.content}</div>
+            <p class="comment-text">${escapeHtml(data.content).replace(/\n/g, "<br>")}</p>
+            <div class="comment-actions">
+              <button type="button" class="btn-reply" onclick="alert('답글 기능은 준비 중입니다.')">답글 달기</button>
+            </div>
           </div>
-        </div>
+        </li>
       `;
-      commentsList.insertAdjacentHTML('beforeend', commentHtml);
+      commentsList.insertAdjacentHTML("beforeend", commentHtml);
     });
+
+    // 댓글이 다 불러와진 후 강제 리플로우
+    window.dispatchEvent(new Event("resize"));
   });
 
-  // 6. 댓글 쓰기 기능
-  document.getElementById('btn-submit-comment').addEventListener('click', async () => {
-    const text = commentInput.value.trim();
-    if (!text) return alert('댓글 내용을 입력하세요.');
-    if (!currentUser) return alert('로그인이 필요합니다.');
+  // 6. 탭 상태에 맞춰 댓글 Firestore에 작성하기
+  submitBtn.addEventListener("click", async () => {
+    const text = textarea.value.trim();
+    if (!text) return alert("댓글 내용을 입력하세요.");
+
+    let docData = {
+      postId: postId,
+      content: text,
+      createdAt: serverTimestamp(),
+    };
+
+    if (currentTab === "social") {
+      if (!currentUser || currentUser.isAnonymous)
+        return alert("로그인이 필요합니다.");
+      docData.uid = currentUser.uid;
+      docData.displayName = currentUser.displayName || "Social User";
+      docData.photoURL = currentUser.photoURL || null;
+      docData.isAnonymous = false;
+    } else {
+      // 비회원(익명) 탭일 경우 익명 권한 발급 후 데이터 매핑
+      const nickname = anonNickname.value.trim();
+      const password = anonPassword.value.trim();
+      if (!nickname || !password)
+        return alert("닉네임과 비밀번호를 모두 입력해주세요.");
+
+      let anonUid = currentUser ? currentUser.uid : null;
+      if (!anonUid || (currentUser && !currentUser.isAnonymous)) {
+        try {
+          const userCredential = await signInAnonymously(auth);
+          anonUid = userCredential.user.uid;
+        } catch (e) {
+          console.error(e);
+          return alert("익명 인증에 실패했습니다.");
+        }
+      }
+
+      docData.uid = anonUid;
+      docData.displayName = nickname;
+      docData.photoURL = `https://ui-avatars.com/api/?name=${encodeURIComponent(nickname)}&background=random`;
+      docData.isAnonymous = true;
+      docData.password = password;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = "등록 중...";
 
     try {
-      await addDoc(collection(db, "comments"), {
-        postId: postId,
-        uid: currentUser.uid,
-        displayName: currentUser.isAnonymous ? '익명 사용자' : currentUser.displayName,
-        photoURL: currentUser.photoURL || null,
-        content: text,
-        createdAt: serverTimestamp(),
-        isAnonymous: currentUser.isAnonymous
-      });
-      commentInput.value = ''; // 입력창 초기화
+      await addDoc(collection(db, "comments"), docData);
+      textarea.value = "";
+      if (currentTab === "anonymous") {
+        anonNickname.value = "";
+        anonPassword.value = "";
+      }
     } catch (error) {
       console.error("댓글 작성 에러:", error);
-      alert('댓글을 저장하는 중 오류가 발생했습니다.');
+      alert("댓글을 저장하는 중 오류가 발생했습니다.");
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "댓글 남기기";
     }
   });
 </script>
