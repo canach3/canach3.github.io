@@ -333,7 +333,7 @@
               type="password"
               id="anon-password"
               class="anon-input"
-              placeholder="비밀번호 (수정/삭제용)"
+              placeholder="비밀번호"
             />
           </div>
         </div>
@@ -341,7 +341,7 @@
         <textarea
           id="comment-textarea"
           class="comment-input"
-          placeholder="글에 대한 자유로운 의견을 남겨주세요..."
+          placeholder="댓글 남기기"
           rows="3"
           disabled
         ></textarea>
@@ -402,7 +402,7 @@
     projectId: "canacode-comments",
     storageBucket: "canacode-comments.firebasestorage.app",
     messagingSenderId: "800456034298",
-    appId: "1:800456034298:web:8954c73377c95499ab8643"
+    appId: "1:800456034298:web:8954c73377c95499ab8643",
   };
 
   const app = initializeApp(firebaseConfig);
@@ -413,7 +413,7 @@
   const defaultAvatar =
     "https://ui-avatars.com/api/?name=U&background=f0f0f0&color=333";
 
-  // DOM 제어 변수 설정
+  /* DOM 제어 변수 설정 */
   const tabs = document.querySelectorAll(".auth-tab");
   const socialArea = document.getElementById("social-area");
   const anonymousArea = document.getElementById("anonymous-area");
@@ -433,7 +433,7 @@
   let currentTab = "social";
   let currentUser = null;
 
-  // 1. 탭 전환 제어
+  /* 1. 탭 전환 제어 */
   tabs.forEach((tab) => {
     tab.addEventListener("click", (e) => {
       tabs.forEach((t) => t.classList.remove("active"));
@@ -443,7 +443,7 @@
     });
   });
 
-  // 2. UI 상태 업데이트 로직 (로그인 여부, 탭 전환에 따라 동작)
+  /* 2. UI 상태 업데이트 로직 (로그인 여부, 탭 전환에 따라 동작) */
   function updateUI() {
     if (currentTab === "social") {
       socialArea.style.display = "block";
@@ -468,7 +468,7 @@
       avatar.src = defaultAvatar;
       toggleInputState(true);
     }
-    // 🔥 [중요] F12를 켜야 화면이 나오던 버그 방지를 위해 DOM 업데이트 후 강제 리플로우 유도
+    /* F12를 켜야 화면이 나오던 버그 방지를 위해 DOM 업데이트 후 강제 리플로우 유도 */
     window.dispatchEvent(new Event("resize"));
   }
 
@@ -484,13 +484,13 @@
     }
   }
 
-  // 3. 인증 옵저버 (로그인 상태를 감시)
+  /* 3. 인증 옵저버 (로그인 상태를 감시) */
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
     updateUI();
   });
 
-  // 4. 소셜 로그인 기능 연동 (Google, GitHub 모두 연결)
+  /* 4. 소셜 로그인 기능 연동 (Google, GitHub 모두 연결) */
   document.getElementById("btn-google-login").addEventListener("click", () => {
     signInWithPopup(auth, new GoogleAuthProvider()).catch((err) =>
       console.error("Google 로그인 에러:", err),
@@ -507,7 +507,7 @@
     signOut(auth);
   });
 
-  // 악성 스크립트 방지(XSS)를 위한 특수문자 변환
+  /* 악성 스크립트 방지(XSS)를 위한 특수문자 변환 */
   const escapeHtml = (unsafe) => {
     return (unsafe || "")
       .toString()
@@ -518,7 +518,7 @@
       .replace(/'/g, "&#039;");
   };
 
-  // 5. 실시간 댓글 불러오기 로직
+  /* 5. 실시간 댓글 불러오기 로직 */
   const q = query(
     collection(db, "comments"),
     where("postId", "==", postId),
@@ -561,11 +561,11 @@
       commentsList.insertAdjacentHTML("beforeend", commentHtml);
     });
 
-    // 댓글이 다 불러와진 후 강제 리플로우
+    /* 댓글이 다 불러와진 후 강제 리플로우 */
     window.dispatchEvent(new Event("resize"));
   });
 
-  // 6. 탭 상태에 맞춰 댓글 Firestore에 작성하기
+  /* 6. 탭 상태에 맞춰 댓글 Firestore에 작성하기 */
   submitBtn.addEventListener("click", async () => {
     const text = textarea.value.trim();
     if (!text) return alert("댓글 내용을 입력하세요.");
@@ -584,7 +584,7 @@
       docData.photoURL = currentUser.photoURL || null;
       docData.isAnonymous = false;
     } else {
-      // 비회원(익명) 탭일 경우 익명 권한 발급 후 데이터 매핑
+      /* 비회원(익명) 탭일 경우 익명 권한 발급 후 데이터 매핑 */
       const nickname = anonNickname.value.trim();
       const password = anonPassword.value.trim();
       if (!nickname || !password)
