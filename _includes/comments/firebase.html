@@ -55,6 +55,9 @@
       border-color 0.2s ease,
       box-shadow 0.2s ease;
   }
+  .comment-input::placeholder {
+    font-family: inherit;
+  }
   .comment-input:focus {
     outline: none;
     border-color: #007bff;
@@ -78,11 +81,18 @@
   .btn-submit:hover {
     background-color: var(--btn-hover-color, #0366d6);
   }
+
+  /* 댓글 및 답글 리스트 구조 */
   .comment-list,
   .reply-list {
     list-style: none;
     padding: 0;
     margin: 0;
+  }
+  .reply-list {
+    margin-top: 1rem;
+    padding-left: 3.5rem;
+    border-left: 2px solid var(--main-border-color, #e1e4e8);
   }
   .comment-item {
     display: flex;
@@ -91,6 +101,7 @@
   }
   .comment-content {
     flex-grow: 1;
+    width: 100%;
   }
   .comment-meta {
     display: flex;
@@ -120,12 +131,15 @@
     color: var(--text-color, #24292e);
     font-size: 0.95rem;
     line-height: 1.6;
+    word-break: break-all;
   }
+
+  /* 액션 버튼들 (답글, 수정, 삭제) */
   .comment-actions {
     display: flex;
     gap: 1rem;
   }
-  .btn-reply {
+  .btn-action {
     background: none;
     border: none;
     padding: 0;
@@ -135,10 +149,26 @@
     cursor: pointer;
     transition: color 0.2s ease;
   }
-  .btn-reply:hover {
+  .btn-action:hover {
     color: var(--link-color, #007bff);
     text-decoration: underline;
   }
+  .btn-danger:hover {
+    color: #dc3545; /* 빨간색 포인트 */
+  }
+
+  /* 인라인 폼 (답글 작성 & 수정용) */
+  .inline-form-container {
+    margin-top: 1rem;
+  }
+  .inline-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+
+  /* 인증 UI */
   .comment-writing-section {
     margin-bottom: 2.5rem;
   }
@@ -395,6 +425,9 @@
     orderBy,
     onSnapshot,
     serverTimestamp,
+    doc,
+    deleteDoc,
+    updateDoc,
   } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -414,7 +447,7 @@
   const defaultAvatar =
     "https://ui-avatars.com/api/?name=U&background=f0f0f0&color=333";
 
-  /* DOM 제어 변수 설정 */
+  /* DOM 요소 */
   const tabs = document.querySelectorAll(".auth-tab");
   const socialArea = document.getElementById("social-area");
   const anonymousArea = document.getElementById("anonymous-area");
@@ -433,8 +466,10 @@
 
   let currentTab = "social";
   let currentUser = null;
+  let commentsData =
+    []; /* 로드된 전체 댓글을 메모리에 저장 (비밀번호 대조 등 활용) */
 
-  /* 1. 탭 전환 제어 */
+  /* 1. 탭 전환 및 UI 업데이트 로직 */
   tabs.forEach((tab) => {
     tab.addEventListener("click", (e) => {
       tabs.forEach((t) => t.classList.remove("active"));
@@ -444,7 +479,6 @@
     });
   });
 
-  /* 2. UI 상태 업데이트 로직 (로그인 여부, 탭 전환에 따라 동작) */
   function updateUI() {
     if (currentTab === "social") {
       socialArea.style.display = "block";
@@ -469,7 +503,6 @@
       avatar.src = defaultAvatar;
       toggleInputState(true);
     }
-    /* F12를 켜야 화면이 나오던 버그 방지를 위해 DOM 업데이트 후 강제 리플로우 유도 */
     window.dispatchEvent(new Event("resize"));
   }
 
@@ -485,30 +518,23 @@
     }
   }
 
-  /* 3. 인증 옵저버 (로그인 상태를 감시) */
+  /* 2. 인증 설정 */
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
     updateUI();
   });
 
-  /* 4. 소셜 로그인 기능 연동 (Google, GitHub 모두 연결) */
   document.getElementById("btn-google-login").addEventListener("click", () => {
-    signInWithPopup(auth, new GoogleAuthProvider()).catch((err) =>
-      console.error("Google 로그인 에러:", err),
-    );
+    signInWithPopup(auth, new GoogleAuthProvider()).catch(console.error);
   });
-
   document.getElementById("btn-github-login").addEventListener("click", () => {
-    signInWithPopup(auth, new GithubAuthProvider()).catch((err) =>
-      console.error("GitHub 로그인 에러:", err),
-    );
+    signInWithPopup(auth, new GithubAuthProvider()).catch(console.error);
   });
+  document
+    .getElementById("btn-logout")
+    .addEventListener("click", () => signOut(auth));
 
-  document.getElementById("btn-logout").addEventListener("click", () => {
-    signOut(auth);
-  });
-
-  /* 악성 스크립트 방지(XSS)를 위한 특수문자 변환 */
+  /* 특수문자 이스케이프 함수 */
   const escapeHtml = (unsafe) => {
     return (unsafe || "")
       .toString()
@@ -519,100 +545,136 @@
       .replace(/'/g, "&#039;");
   };
 
-  /* 5. 실시간 댓글 불러오기 로직 */
+  /* 3. 작성자 인증 정보 가져오기 (공통 함수) */
+  async function getAuthorData() {
+    if (currentTab === "social") {
+      if (!currentUser || currentUser.isAnonymous)
+        throw new Error("로그인이 필요합니다.");
+      return {
+        uid: currentUser.uid,
+        displayName: currentUser.displayName || "Social User",
+        photoURL: currentUser.photoURL || null,
+        isAnonymous: false,
+      };
+    } else {
+      const nickname = anonNickname.value.trim();
+      const password = anonPassword.value.trim();
+      if (!nickname || !password)
+        throw new Error("닉네임과 비밀번호를 모두 입력해주세요.");
+
+      let anonUid = currentUser ? currentUser.uid : null;
+      if (!anonUid || (currentUser && !currentUser.isAnonymous)) {
+        const userCredential = await signInAnonymously(auth);
+        anonUid = userCredential.user.uid;
+      }
+      return {
+        uid: anonUid,
+        displayName: nickname,
+        photoURL: `https://ui-avatars.com/api/?name=${encodeURIComponent(nickname)}&background=random`,
+        isAnonymous: true,
+        password: password,
+      };
+    }
+  }
+
+  /* 4. 실시간 댓글 렌더링 */
   const q = query(
     collection(db, "comments"),
     where("postId", "==", postId),
-    orderBy("createdAt", "desc"),
+    orderBy("createdAt", "asc"),
   );
 
   onSnapshot(q, (snapshot) => {
     commentsList.innerHTML = "";
-    commentCountEl.textContent = snapshot.size;
+    commentsData = [];
 
-    if (snapshot.empty) {
+    snapshot.forEach((doc) => commentsData.push({ id: doc.id, ...doc.data() }));
+    commentCountEl.textContent = commentsData.length;
+
+    if (commentsData.length === 0) {
       commentsList.innerHTML =
         '<li class="comment-item" style="color: var(--text-muted-color); text-align: center; width:100%; padding: 20px;">첫 댓글을 남겨주세요!</li>';
       window.dispatchEvent(new Event("resize"));
       return;
     }
 
-    snapshot.forEach((doc) => {
-      const data = doc.data();
+    /* 최상단 댓글과 답글 분리 */
+    const topLevelComments = commentsData.filter((c) => !c.parentId);
+    const replies = commentsData.filter((c) => c.parentId);
+
+    /* 공통 렌더링 함수 */
+    const renderCommentHTML = (data, isReply = false) => {
       const dateStr = data.createdAt
         ? data.createdAt.toDate().toLocaleString()
         : "방금 전";
+      const isOwner =
+        currentUser && !currentUser.isAnonymous && currentUser.uid === data.uid;
 
-      const commentHtml = `
-        <li class="comment-item">
-          <img src="${escapeHtml(data.photoURL) || defaultAvatar}" alt="Avatar" class="comment-avatar">
+      let actionBtns = "";
+      if (!isReply) {
+        actionBtns += `<button type="button" class="btn-action btn-reply" data-id="${data.id}">답글 달기</button>`;
+      }
+      /* 소셜 본인 댓글이거나 익명 댓글인 경우 수정/삭제 노출 */
+      if (isOwner || data.isAnonymous) {
+        actionBtns += `
+          <button type="button" class="btn-action btn-edit" data-id="${data.id}">수정</button>
+          <button type="button" class="btn-action btn-danger btn-delete" data-id="${data.id}" data-anon="${data.isAnonymous}">삭제</button>
+        `;
+      }
+
+      return `
+        <li class="comment-item" id="comment-${data.id}">
+          <img src="${escapeHtml(data.photoURL) || defaultAvatar}" alt="Avatar" class="comment-avatar" ${isReply ? 'style="width: 32px; height: 32px;"' : ""}>
           <div class="comment-content">
             <div class="comment-meta">
               <span class="comment-author">${escapeHtml(data.displayName)}</span>
               ${data.isAnonymous ? '<span class="badge-author">익명</span>' : ""}
               <span class="comment-date">${dateStr}</span>
             </div>
-            <p class="comment-text">${escapeHtml(data.content).replace(/\n/g, "<br>")}</p>
-            <div class="comment-actions">
-              <button type="button" class="btn-reply" onclick="alert('답글 기능은 준비 중입니다.')">답글 달기</button>
+            <div class="comment-text-container" id="text-container-${data.id}">
+              <p class="comment-text">${escapeHtml(data.content).replace(/\n/g, "<br>")}</p>
             </div>
+            <div class="comment-actions" id="actions-${data.id}">${actionBtns}</div>
+            
+            <div id="reply-form-${data.id}"></div>
+            ${!isReply ? `<ul class="reply-list" id="replies-${data.id}"></ul>` : ""}
           </div>
         </li>
       `;
-      commentsList.insertAdjacentHTML("beforeend", commentHtml);
+    };
+
+    /* 최상단 댓글 렌더링 */
+    topLevelComments.forEach((c) =>
+      commentsList.insertAdjacentHTML("beforeend", renderCommentHTML(c, false)),
+    );
+
+    /* 답글 렌더링 (해당 부모 ul 안에 삽입) */
+    replies.forEach((r) => {
+      const parentUl = document.getElementById(`replies-${r.parentId}`);
+      if (parentUl) {
+        parentUl.insertAdjacentHTML("beforeend", renderCommentHTML(r, true));
+      }
     });
 
-    /* 댓글이 다 불러와진 후 강제 리플로우 */
     window.dispatchEvent(new Event("resize"));
   });
 
-  /* 6. 탭 상태에 맞춰 댓글 Firestore에 작성하기 */
+  /* 5. 최상단 댓글 작성 이벤트 */
   submitBtn.addEventListener("click", async () => {
     const text = textarea.value.trim();
     if (!text) return alert("댓글 내용을 입력하세요.");
-
-    let docData = {
-      postId: postId,
-      content: text,
-      createdAt: serverTimestamp(),
-    };
-
-    if (currentTab === "social") {
-      if (!currentUser || currentUser.isAnonymous)
-        return alert("로그인이 필요합니다.");
-      docData.uid = currentUser.uid;
-      docData.displayName = currentUser.displayName || "Social User";
-      docData.photoURL = currentUser.photoURL || null;
-      docData.isAnonymous = false;
-    } else {
-      /* 비회원(익명) 탭일 경우 익명 권한 발급 후 데이터 매핑 */
-      const nickname = anonNickname.value.trim();
-      const password = anonPassword.value.trim();
-      if (!nickname || !password)
-        return alert("닉네임과 비밀번호를 모두 입력해주세요.");
-
-      let anonUid = currentUser ? currentUser.uid : null;
-      if (!anonUid || (currentUser && !currentUser.isAnonymous)) {
-        try {
-          const userCredential = await signInAnonymously(auth);
-          anonUid = userCredential.user.uid;
-        } catch (e) {
-          console.error(e);
-          return alert("익명 인증에 실패했습니다.");
-        }
-      }
-
-      docData.uid = anonUid;
-      docData.displayName = nickname;
-      docData.photoURL = `https://ui-avatars.com/api/?name=${encodeURIComponent(nickname)}&background=random`;
-      docData.isAnonymous = true;
-      docData.password = password;
-    }
 
     submitBtn.disabled = true;
     submitBtn.textContent = "등록 중...";
 
     try {
+      const authorData = await getAuthorData();
+      const docData = {
+        postId: postId,
+        content: text,
+        createdAt: serverTimestamp(),
+        ...authorData,
+      };
       await addDoc(collection(db, "comments"), docData);
       textarea.value = "";
       if (currentTab === "anonymous") {
@@ -620,11 +682,138 @@
         anonPassword.value = "";
       }
     } catch (error) {
-      console.error("댓글 작성 에러:", error);
-      alert("댓글을 저장하는 중 오류가 발생했습니다.");
+      if (error.message) alert(error.message);
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = "댓글 남기기";
+    }
+  });
+
+  /* 6. 답글, 수정, 삭제 이벤트 위임 (Event Delegation) */
+  commentsList.addEventListener("click", async (e) => {
+    const target = e.target;
+    if (
+      !target.classList.contains("btn-action") &&
+      !target.classList.contains("btn-submit")
+    )
+      return;
+
+    const id =
+      target.getAttribute("data-id") || target.getAttribute("data-parent");
+    const comment = commentsData.find((c) => c.id === id);
+
+    /* 6-1. 삭제 */
+    if (target.classList.contains("btn-delete")) {
+      if (comment.isAnonymous) {
+        const pwd = prompt("익명 댓글을 삭제하려면 비밀번호를 입력하세요.");
+        if (pwd === null) return;
+        if (pwd !== comment.password)
+          return alert("비밀번호가 일치하지 않습니다.");
+      } else {
+        if (!confirm("정말 삭제하시겠습니까?")) return;
+      }
+      try {
+        await deleteDoc(doc(db, "comments", id));
+      } catch (err) {
+        alert("삭제 중 오류가 발생했습니다.");
+      }
+      return;
+    }
+
+    /* 6-2. 답글 달기 폼 토글 */
+    if (target.classList.contains("btn-reply")) {
+      const formContainer = document.getElementById(`reply-form-${id}`);
+      if (formContainer.innerHTML !== "") {
+        formContainer.innerHTML = ""; /* 닫기 */
+      } else {
+        formContainer.innerHTML = `
+          <div class="inline-form-container">
+            <textarea class="comment-input" id="reply-input-${id}" placeholder="답글을 남겨보세요" rows="2"></textarea>
+            <div class="inline-form-actions">
+              <button class="btn-submit btn-submit-reply" data-parent="${id}">답글 등록</button>
+            </div>
+          </div>
+        `;
+      }
+      return;
+    }
+
+    /* 6-3. 답글 등록 처리 */
+    if (target.classList.contains("btn-submit-reply")) {
+      const parentId = target.getAttribute("data-parent");
+      const replyText = document
+        .getElementById(`reply-input-${parentId}`)
+        .value.trim();
+      if (!replyText) return alert("답글 내용을 입력하세요.");
+
+      target.disabled = true;
+      target.textContent = "등록 중...";
+      try {
+        const authorData = await getAuthorData();
+        const docData = {
+          postId: postId,
+          content: replyText,
+          createdAt: serverTimestamp(),
+          parentId: parentId /* 부모 ID 지정 */,
+          ...authorData,
+        };
+        await addDoc(collection(db, "comments"), docData);
+      } catch (err) {
+        if (err.message) alert(err.message);
+        target.disabled = false;
+        target.textContent = "답글 등록";
+      }
+      return;
+    }
+
+    /* 6-4. 수정 폼 열기 */
+    if (target.classList.contains("btn-edit")) {
+      if (comment.isAnonymous) {
+        const pwd = prompt("익명 댓글을 수정하려면 비밀번호를 입력하세요.");
+        if (pwd === null) return;
+        if (pwd !== comment.password)
+          return alert("비밀번호가 일치하지 않습니다.");
+      }
+      const textContainer = document.getElementById(`text-container-${id}`);
+      const actionsContainer = document.getElementById(`actions-${id}`);
+
+      actionsContainer.style.display = "none";
+      textContainer.innerHTML = `
+        <div class="inline-form-container" style="margin-top: 0;">
+          <textarea class="comment-input" id="edit-input-${id}" rows="2">${escapeHtml(comment.content)}</textarea>
+          <div class="inline-form-actions">
+            <button class="btn-action btn-cancel-edit" data-id="${id}">취소</button>
+            <button class="btn-submit btn-save-edit" data-id="${id}">저장</button>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    /* 6-5. 수정 취소 */
+    if (target.classList.contains("btn-cancel-edit")) {
+      const textContainer = document.getElementById(`text-container-${id}`);
+      const actionsContainer = document.getElementById(`actions-${id}`);
+      textContainer.innerHTML = `<p class="comment-text">${escapeHtml(comment.content).replace(/\n/g, "<br>")}</p>`;
+      actionsContainer.style.display = "flex";
+      return;
+    }
+
+    /* 6-6. 수정 저장 */
+    if (target.classList.contains("btn-save-edit")) {
+      const newText = document.getElementById(`edit-input-${id}`).value.trim();
+      if (!newText) return alert("내용을 입력하세요.");
+
+      target.disabled = true;
+      target.textContent = "저장 중...";
+      try {
+        await updateDoc(doc(db, "comments", id), { content: newText });
+        /* 성공 시 onSnapshot이 UI를 자동 갱신합니다. */
+      } catch (err) {
+        alert("수정 중 오류가 발생했습니다.");
+        target.disabled = false;
+        target.textContent = "저장";
+      }
     }
   });
 </script>
