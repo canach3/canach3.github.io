@@ -147,10 +147,17 @@
   </div>
 </div>
 
+<!-- EmailJS 라이브러리 및 초기화 -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+<script>
+  /* 발급받은 Public Key를 입력하세요 */
+  emailjs.init("hJSResFQEGHGzkPhC");
+</script>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
   import { getAuth, signInWithPopup, GoogleAuthProvider, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-  import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp, doc, updateDoc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, query, where, orderBy, onSnapshot, serverTimestamp, doc, updateDoc, deleteDoc, getDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAZT1G_bZ0nkBhFLLqL7BZBjNaDVNV_4Zo",
@@ -276,9 +283,68 @@
     const text = replyInput.value.trim();
     if (!text) return alert("내용을 입력하세요.");
 
-    await processCommentSubmission(text, parentId, () => {
+    /* 1. 입력창이 초기화되기 전에 작성자의 닉네임과 이메일을 미리 확실하게 백업해 둡니다. */
+    let replierName = "익명 사용자";
+    let currentReplierEmail = "";
+    const isAdminUser = currentUser && !currentUser.isAnonymous && currentUser.email === ADMIN_EMAIL;
+    
+    if (isAdminUser) {
+      replierName = "카나코드";
+      currentReplierEmail = ADMIN_EMAIL;
+    } else {
+      const inputNick = document.getElementById(`reply-nickname-${parentId}`);
+      if (inputNick && inputNick.value.trim()) replierName = inputNick.value.trim();
+      
+      const inputEmail = document.getElementById(`reply-email-${parentId}`);
+      if (inputEmail && inputEmail.value.trim()) currentReplierEmail = inputEmail.value.trim();
+    }
+
+    await processCommentSubmission(text, parentId, async () => {
       replyInput.value = "";
-      toggleReplyForm(parentId);
+      window.toggleReplyForm(parentId);
+
+      try {
+        const parentDoc = await getDoc(doc(db, "comments", parentId));
+        const repliesQuery = query(collection(db, "comments"), where("parentId", "==", parentId));
+        const repliesSnap = await getDocs(repliesQuery);
+
+        /* 2. Map을 사용하여 이메일 중복은 방지하되, 수신자의 실제 닉네임(displayName)은 보존합니다. */
+        const targetUsers = new Map();
+        
+        if (parentDoc.exists() && parentDoc.data().email) {
+          targetUsers.set(parentDoc.data().email, parentDoc.data().displayName);
+        }
+        
+        repliesSnap.forEach((d) => {
+          if (d.data().email) {
+            targetUsers.set(d.data().email, d.data().displayName);
+          }
+        });
+
+        /* 블로그 주인(카나코드)은 무조건 알림 수신 대상에 추가 */
+        targetUsers.set(ADMIN_EMAIL, "카나코드");
+
+        /* 방금 답글을 쓴 본인에게는 알림이 가지 않도록 삭제 */
+        targetUsers.delete(currentReplierEmail);
+
+        if (targetUsers.size > 0) {
+          const emailPromises = Array.from(targetUsers.entries()).map(([email, name]) => {
+            const templateParams = {
+              to_email: email,
+              to_name: name,             /* 이제 "구독자"가 아닌 실제 닉네임이 들어갑니다 */
+              reply_name: replierName,   /* 실제 답글을 단 사람의 닉네임이 들어갑니다 */
+              reply_content: text,
+              post_link: window.location.href
+            };
+            return emailjs.send("service_n6vjcvi", "template_s4as7uj", templateParams);
+          });
+
+          await Promise.all(emailPromises);
+          console.log(`총 ${targetUsers.size}명에게 알림 이메일 발송 완료`);
+        }
+      } catch (e) {
+        console.error("이메일 알림 발송 중 에러 발생:", e);
+      }
     });
   };
 
@@ -396,14 +462,42 @@
     const text = textarea.value.trim();
     if (!text) return alert("댓글 내용을 입력하세요.");
 
+    /* 1. 입력창이 지워지기 전에 작성자 닉네임을 확실하게 백업 */
+    let writerName = "익명 사용자";
+    const isAdminUser = currentUser && !currentUser.isAnonymous && currentUser.email === ADMIN_EMAIL;
+    
+    if (isAdminUser) {
+      writerName = "카나코드";
+    } else if (anonNickname && anonNickname.value.trim()) {
+      writerName = anonNickname.value.trim();
+    }
+
     submitBtn.disabled = true;
     submitBtn.textContent = "등록 중...";
 
-    await processCommentSubmission(text, null, () => {
+    await processCommentSubmission(text, null, async () => {
+      
       textarea.value = "";
-      anonNickname.value = "";
-      anonPassword.value = "";
-      anonEmail.value = "";
+      if (anonNickname) anonNickname.value = "";
+      if (anonPassword) anonPassword.value = "";
+      if (anonEmail) anonEmail.value = "";
+
+      /* 2. 블로그 주인에게 새 댓글 알림 발송 시도 */
+      try {
+        if (!isAdminUser) {
+          const templateParams = {
+            to_email: ADMIN_EMAIL,
+            to_name: "카나코드",
+            reply_name: writerName,  /* 백업해둔 실제 닉네임 적용 */
+            reply_content: text,
+            post_link: window.location.href
+          };
+          await emailjs.send("service_n6vjcvi", "template_s4as7uj", templateParams);
+          console.log("블로그 주인에게 새 댓글 알림 발송 완료");
+        }
+      } catch (e) {
+        console.error("새 댓글 알림 발송 중 에러 발생:", e);
+      }
     });
 
     submitBtn.disabled = false;
