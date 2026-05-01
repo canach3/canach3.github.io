@@ -281,7 +281,7 @@
     /* 블로그 주인이 아닐 때만 커스텀 모달로 비밀번호 요구 */
     if (!isAdminUser) {
       pwd = await askPassword();
-      if (!pwd) return; // 모달창 취소 시
+      if (!pwd) return;
     }
 
     try {
