@@ -82,6 +82,19 @@
   [data-mode="dark"] .comments-container, [data-mode="dark"] .pwd-modal {
     --main-border-color: #3e3e42; --text-color: #d1d5da; --text-muted-color: #8b949e; --main-bg: #212121; --btn-bg-color: #3e3e42; --btn-hover-color: #58a6ff; --link-color: #58a6ff;
   }
+
+  /* --- 폰트 강제 상속 (입력창, 버튼, Placeholder) --- */
+  .comment-input,
+  .anon-input,
+  .btn-submit,
+  .btn-action-text {
+    font-family: inherit !important;
+  }
+
+  .comment-input::placeholder,
+  .anon-input::placeholder {
+    font-family: inherit !important;
+  }
 </style>
 
 <div id="custom-comments" class="comments-container">
@@ -103,7 +116,7 @@
           </div>
         </div>
 
-        <textarea id="comment-textarea" class="comment-input" placeholder="글에 대한 자유로운 의견을 남겨주세요..." rows="3"></textarea>
+        <textarea id="comment-textarea" class="comment-input" placeholder="글에 대한 자유로운 의견을 남겨주세요." rows="3"></textarea>
         
         <div class="form-actions">
           <div id="admin-status" class="admin-status-text">
@@ -457,7 +470,7 @@
                 <input type="password" id="reply-password-${data.id}" class="anon-input" placeholder="비밀번호" />
                 <input type="email" id="reply-email-${data.id}" class="anon-input" placeholder="이메일 (선택)" />
               </div>
-              <textarea class="comment-input" id="reply-input-${data.id}" placeholder="답글을 입력하세요..." rows="2"></textarea>
+              <textarea class="comment-input" id="reply-input-${data.id}" placeholder="답글을 입력하세요." rows="2"></textarea>
               <div class="form-actions" style="justify-content: flex-end;">
                 <button class="btn-submit" onclick="window.submitReply('${data.id}')">답글 남기기</button>
               </div>
