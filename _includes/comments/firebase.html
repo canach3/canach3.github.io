@@ -424,7 +424,7 @@
     if (isAdminUser) {
       docData.uid = currentUser.uid;
       docData.displayName = "카나코드"; /* 관리자 닉네임 고정 */
-      docData.photoURL = currentUser.photoURL || null;
+      docData.photoURL = "/assets/img/profile.png"
       docData.isAdmin = true;
     } else {
       /* 일반 익명 유저 */
@@ -533,7 +533,7 @@
     
     const commentHtml = `
       <li class="comment-item" id="comment-${data.id}">
-        <img src="${escapeHtml(data.photoURL) || defaultAvatar}" alt="Avatar" class="comment-avatar">
+        <img src="${data.isAdmin ? '/assets/img/profile.png' : (escapeHtml(data.photoURL) || defaultAvatar)}" alt="Avatar" class="comment-avatar">
         <div class="comment-content">
           <div class="comment-meta">
             <span class="comment-author">${escapeHtml(data.displayName)}</span>
@@ -575,7 +575,7 @@
             <div class="reply-container">
               ${replies.map(r => `
                   <div class="reply-item">
-                    <img src="${escapeHtml(r.photoURL) || defaultAvatar}" class="comment-avatar">
+                    <img src="${r.isAdmin ? '/assets/img/profile.png' : (escapeHtml(r.photoURL) || defaultAvatar)}" class="comment-avatar">
                     <div style="flex-grow:1;">
                       <div class="comment-meta">
                         <span class="comment-author">${escapeHtml(r.displayName)}</span>
