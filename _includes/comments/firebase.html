@@ -438,6 +438,11 @@
     if (!isAdminUser) { pwd = await askPassword(); if (!pwd) return; }
 
     try {
+      /* 새 시크릿 탭 등에서 로그인 세션이 끊겨있다면 즉석에서 익명 로그인 */
+      if (!auth.currentUser) {
+        await signInAnonymously(auth);
+      }
+
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         const data = docSnap.data();
@@ -446,7 +451,10 @@
         await updateDoc(docRef, { content: newContent });
         cancelEdit(id);
       }
-    } catch(e) { alert("데이터 조회 오류 또는 권한이 없습니다."); }
+    } catch(e) { 
+      console.error("수정 에러:", e);
+      alert("데이터 조회 오류 또는 권한이 없습니다."); 
+    }
   };
 
   window.confirmDelete = async function(id) {
@@ -458,6 +466,11 @@
     if (!isAdminUser) { pwd = await askPassword(); if (!pwd) return; }
 
     try {
+      /* 새 시크릿 탭 등에서 로그인 세션이 끊겨있다면 즉석에서 익명 로그인 */
+      if (!auth.currentUser) {
+        await signInAnonymously(auth);
+      }
+
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         const data = docSnap.data();
@@ -465,7 +478,10 @@
         if (!data.isAdmin && data.password !== pwd && !isAdminUser) return alert("비밀번호가 일치하지 않습니다.");
         await deleteDoc(docRef);
       }
-    } catch (e) { alert("삭제 권한이 없습니다."); }
+    } catch (e) { 
+      console.error("삭제 에러:", e);
+      alert("삭제 권한이 없습니다."); 
+    }
   };
 
   async function processCommentSubmission(textContent, parentId, onSuccessCallback) {
