@@ -96,6 +96,25 @@
   .anon-input::placeholder {
     font-family: inherit !important;
   }
+
+  /* --- 더보기 버튼 스타일 --- */
+  .btn-load-more {
+    padding: 0.6rem 1.5rem;
+    background-color: transparent;
+    color: var(--text-color, #24292e);
+    border: 1px solid var(--main-border-color, #e1e4e8);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  .btn-load-more:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+  [data-mode="dark"] .btn-load-more:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
 </style>
 
 <div id="custom-comments" class="comments-container">
@@ -134,6 +153,11 @@
   <ul class="comment-list" id="comments-list-ul">
     <li class="comment-item" style="color: var(--text-muted-color); text-align: center; width: 100%; padding: 20px;">댓글을 불러오는 중입니다...</li>
   </ul>
+
+  <!-- 이전 댓글 더보기 버튼 -->
+  <div id="load-more-container" style="text-align: center; margin-top: 1.5rem; display: none;">
+    <button id="btn-load-more" class="btn-load-more">이전 댓글 더보기</button>
+  </div>
 </div>
 
 <!-- 추가된 비밀번호 입력 모달 UI -->
@@ -505,28 +529,62 @@
     submitBtn.textContent = "댓글 남기기";
   });
 
-  /* 실시간 댓글 불러오기 로직 */
+  /* 실시간 댓글 불러오기 로직 및 페이지네이션 */
   const q = query(collection(db, "comments"), where("postId", "==", postId), orderBy("createdAt", "asc"));
 
-  onSnapshot(q, (snapshot) => {
-    commentsList.innerHTML = "";
-    const allDocs = [];
-    snapshot.forEach(doc => allDocs.push({ id: doc.id, ...doc.data() }));
-    
-    const parents = allDocs.filter(d => !d.parentId);
-    const children = allDocs.filter(d => d.parentId);
-    
-    commentCountEl.textContent = parents.length + children.length;
+  /*  페이지네이션 상태 변수  */
+  let currentCommentLimit = 20; /* 처음에 보여줄 부모 댓글 개수 */
+  const COMMENTS_PER_PAGE = 20; /* 더보기 클릭 시 추가할 개수 */
+  let allParents = [];
+  let allChildren = [];
 
-    if (parents.length === 0) {
+  /* 더보기 버튼 이벤트 리스너 */
+  document.getElementById('btn-load-more').addEventListener('click', () => {
+    currentCommentLimit += COMMENTS_PER_PAGE;
+    renderCommentsList(); /* 한도 증가 후 화면 다시 그리기 */
+  });
+
+  /* 댓글 리스트를 화면에 그리는 전용 함수 */
+  function renderCommentsList() {
+    commentsList.innerHTML = "";
+    
+    if (allParents.length === 0) {
       commentsList.innerHTML = '<li class="comment-item" style="text-align: center; width:100%; padding: 20px;">가장 먼저 댓글을 남겨보세요!</li>';
+      document.getElementById('load-more-container').style.display = 'none';
       return;
     }
 
-    parents.reverse().forEach((data) => {
-      const replies = children.filter(c => c.parentId === data.id);
+    /* 현재 한도(currentCommentLimit)까지만 잘라서 보여주기 */
+    const parentsToShow = allParents.slice(0, currentCommentLimit);
+    
+    parentsToShow.forEach((data) => {
+      const replies = allChildren.filter(c => c.parentId === data.id);
       renderComment(data, replies);
     });
+
+    /* 남은 댓글이 더 있으면 버튼 표시, 없으면 숨김 */
+    const loadMoreContainer = document.getElementById('load-more-container');
+    if (allParents.length > currentCommentLimit) {
+      loadMoreContainer.style.display = 'block';
+    } else {
+      loadMoreContainer.style.display = 'none';
+    }
+  }
+
+  /* 실시간 데이터 감지 */
+  onSnapshot(q, (snapshot) => {
+    const allDocs = [];
+    snapshot.forEach(doc => allDocs.push({ id: doc.id, ...doc.data() }));
+    
+    /* 부모와 자식 대댓글 분리 후 부모는 최신순(역순)으로 정렬 */
+    allParents = allDocs.filter(d => !d.parentId).reverse(); 
+    allChildren = allDocs.filter(d => d.parentId);
+    
+    /* 댓글 갯수 카운트 업데이트 */
+    commentCountEl.textContent = allParents.length + allChildren.length;
+
+    /* 리스트 렌더링 호출 */
+    renderCommentsList();
   });
 
   function renderComment(data, replies) {
