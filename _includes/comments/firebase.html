@@ -9,143 +9,191 @@
     margin-left: auto;
     margin-right: auto;
     box-sizing: border-box;
+    font-family: inherit;
   }
-  .comments-header { margin-bottom: 1.5rem; }
+  .comments-header { margin-bottom: 2rem; }
   
-  /* 더블 클릭 시 텍스트 선택 방지 및 클릭 커서 (관리자 로그인용) */
+  /* 헤더 (댓글 개수 등) */
   .comments-title { 
-    font-size: 1.25rem; font-weight: 600; color: var(--text-color, #24292e); margin: 0; 
+    font-size: 1.25rem; font-weight: 700; color: var(--text-color, #0f1419); margin: 0; 
     user-select: none; cursor: pointer; display: inline-block;
   }
-  .comments-count { color: var(--text-muted-color, #6a737d); font-weight: 400; font-size: 1rem; margin-left: 0.25rem; }
-  .comment-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background-color: var(--main-border-color, #e1e4e8); }
+  .comments-count { color: var(--text-muted-color, #606060); font-weight: 500; font-size: 1.1rem; margin-left: 0.4rem; }
+  
+  /* 아바타 이미지용 (관리자용) */
+  .comment-avatar { 
+    width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; 
+    background-color: var(--main-bg, #ffffff);
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05); 
+  }
+
+  /* --- 구글/유튜브 스타일 CSS 순수 텍스트 아바타 --- */
+  .css-avatar {
+    width: 40px; height: 40px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #ffffff; font-weight: 600; font-size: 1.1rem;
+    flex-shrink: 0; text-transform: uppercase; user-select: none;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  .reply-item .css-avatar {
+    width: 28px; height: 28px; font-size: 0.8rem;
+  }
   
   /* 작성 폼 스타일 */
   .form-inner { flex-grow: 1; display: flex; flex-direction: column; gap: 0.75rem; min-width: 0; }
-  .comment-input { width: 100%; padding: 0.75rem 1rem; border: 1px solid var(--main-border-color, #e1e4e8); border-radius: 8px; background-color: var(--main-bg, #ffffff); color: var(--text-color, #24292e); font-size: 0.95rem; line-height: 1.5; resize: vertical; box-sizing: border-box; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
-  .comment-input:focus { outline: none; border-color: #007bff; box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1); }
-  .form-actions { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
-  .btn-submit { padding: 0.5rem 1.25rem; background-color: var(--btn-bg-color, #24292e); color: #ffffff; border: none; border-radius: 6px; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: background-color 0.2s ease; }
-  .btn-submit:hover { background-color: var(--btn-hover-color, #0366d6); }
+  .comment-input { 
+    width: 100%; padding: 0.75rem 0; border: none; border-bottom: 1px solid var(--main-border-color, #e1e4e8); 
+    border-radius: 0; background-color: transparent; color: var(--text-color, #0f1419); 
+    font-size: 0.95rem; line-height: 1.5; resize: vertical; box-sizing: border-box; 
+    transition: border-color 0.2s ease; font-family: inherit;
+  }
+  .comment-input:focus { outline: none; border-bottom: 2px solid var(--text-color, #0f1419); } 
   
-  /* 익명 정보 입력란 (반응형 지원) */
+  .form-actions { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin-top: 0.5rem; }
+  
+  /* 버튼 스타일: 채도를 낮춘 차분한 다크 블루/그레이톤 */
+  .btn-submit { 
+    padding: 0.5rem 1rem; 
+    background-color: #24292e; /* 기존 쨍한 파란색에서 다크 톤으로 변경 */
+    color: #ffffff; 
+    border: none; 
+    border-radius: 18px; 
+    font-size: 0.85rem; 
+    font-weight: 600; 
+    cursor: pointer; 
+    transition: background-color 0.2s ease, opacity 0.2s ease;
+  }
+  .btn-submit:hover { 
+    background-color: #1b1f23; /* 호버 시 더 어두운 톤 */
+    opacity: 0.9;
+  }
+  
+  /* 익명 정보 입력란 */
   .anonymous-inputs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.25rem; }
-  .anon-input { flex: 1; min-width: 130px; padding: 0.6rem 0.75rem; border: 1px solid var(--main-border-color, #e1e4e8); border-radius: 6px; background-color: var(--main-bg, #ffffff); color: var(--text-color, #24292e); font-size: 0.9rem; }
-  .anon-input:focus { outline: none; border-color: #007bff; }
+  .anon-input { 
+    flex: 1; min-width: 130px; padding: 0.5rem 0.75rem; border: 1px solid var(--main-border-color, #e1e4e8); 
+    border-radius: 6px; background-color: var(--main-bg, #ffffff); color: var(--text-color, #0f1419); font-size: 0.85rem; 
+  }
+  .anon-input:focus { outline: none; border-color: var(--text-color, #0f1419); }
   
   /* 로그인 상태 텍스트 (관리자용) */
-  .admin-status-text { font-size: 0.85rem; color: #007bff; font-weight: 600; display: none; }
-  .btn-logout { background: none; border: none; padding: 0; color: var(--text-muted-color, #6a737d); font-size: 0.8rem; text-decoration: underline; cursor: pointer; margin-left: 0.5rem; }
+  .admin-status-text { font-size: 0.85rem; color: #065fd4; font-weight: 600; display: none; }
+  .btn-logout { background: none; border: none; padding: 0; color: var(--text-muted-color, #606060); font-size: 0.8rem; text-decoration: underline; cursor: pointer; margin-left: 0.5rem; }
 
   /* 댓글 리스트 및 아이템 스타일 */
   .comment-list { list-style: none; padding: 0; margin: 0; }
   .comment-item { display: flex; gap: 1rem; margin-bottom: 1.5rem; }
   .comment-content { flex-grow: 1; min-width: 0; }
-  .comment-meta { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; flex-wrap: wrap; }
-  .comment-author { font-weight: 600; color: var(--text-color, #24292e); font-size: 0.95rem; }
   
-  /* 작성자(어드민) 뱃지 스타일 */
-  .badge-owner { background-color: #007bff; color: white; padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+  /* 메타 정보 (작성자명, 뱃지, 날짜) */
+  .comment-meta { display: flex; align-items: baseline; gap: 0.4rem; margin-bottom: 0.2rem; flex-wrap: wrap; }
+  .comment-author { font-weight: 600; color: var(--text-color, #0f1419); font-size: 0.85rem; }
   
-  .comment-date { color: var(--text-muted-color, #6a737d); font-size: 0.85rem; }
-  .comment-text { margin: 0.25rem 0 0.5rem 0; color: var(--text-color, #24292e); font-size: 0.95rem; line-height: 1.6; word-break: break-all; overflow-wrap: break-word; }
+  /* 작성자(어드민) 뱃지 */
+  .badge-owner { 
+    background-color: var(--text-color, #0f1419); color: var(--main-bg, #ffffff); 
+    padding: 0.1rem 0.5rem; border-radius: 12px; font-size: 0.7rem; font-weight: 600; 
+  }
   
-  /* 수정/삭제/답글 버튼 및 영역 */
-  .comment-actions { display: flex; gap: 1rem; margin-top: 0.5rem; }
-  .btn-action-text { background: none; border: none; padding: 0; color: var(--text-muted-color, #6a737d); font-size: 0.85rem; font-weight: 500; cursor: pointer; transition: color 0.2s ease; }
-  .btn-action-text:hover { color: var(--link-color, #007bff); text-decoration: underline; }
+  .comment-date { color: var(--text-muted-color, #606060); font-size: 0.75rem; font-weight: 400; }
+  .comment-text { margin: 0; color: var(--text-color, #0f1419); font-size: 0.95rem; line-height: 1.5; word-break: break-all; overflow-wrap: break-word; }
+  
+  /* 수정/삭제/답글 버튼 */
+  .comment-actions { display: flex; gap: 1rem; margin-top: 0.4rem; align-items: center; }
+  .btn-action-text { 
+    background: none; border: none; padding: 0.3rem 0.5rem; margin-left: -0.5rem; 
+    color: var(--text-muted-color, #606060); font-size: 0.8rem; font-weight: 600; 
+    cursor: pointer; transition: color 0.2s ease, background-color 0.2s ease; border-radius: 12px;
+  }
+  .btn-action-text:hover { color: var(--text-color, #0f1419); background-color: rgba(0,0,0,0.05); text-decoration: none; }
   .edit-area { display: none; margin-top: 0.5rem; }
   
   /* 대댓글 스타일 */
-  .reply-container { margin-top: 1rem; border-left: 2px solid var(--main-border-color, #e1e4e8); padding-left: 1rem; display: flex; flex-direction: column; gap: 1rem; }
-  .reply-item { display: flex; gap: 0.75rem; }
-  .reply-item .comment-avatar { width: 32px; height: 32px; }
-  .reply-item .comment-text { font-size: 0.9rem; margin-bottom: 0.25rem; }
-  .reply-form-wrapper { display: none; margin-top: 0.75rem; }
+  .reply-container { margin-top: 0.5rem; padding-left: 0; display: flex; flex-direction: column; gap: 1rem; }
+  .reply-item { display: flex; gap: 0.8rem; }
+  .reply-item .comment-avatar { width: 28px; height: 28px; }
+  .reply-item .comment-text { font-size: 0.9rem; margin-bottom: 0.2rem; }
+  .reply-form-wrapper { display: none; margin-top: 0.75rem; padding-bottom: 1rem; }
 
   /* 버튼 비활성화 상태 */
   .comment-input:disabled, .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; background-color: var(--main-border-color, #e1e4e8); }
 
-  /* --- 추가된 비밀번호 입력 모달 스타일 --- */
-  .pwd-modal-overlay {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000;
-  }
-  .pwd-modal {
-    background: var(--main-bg, #ffffff); padding: 1.5rem; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); width: 300px; max-width: 90%; text-align: center; border: 1px solid var(--main-border-color, #e1e4e8);
-  }
-  .pwd-modal h4 { margin-top: 0; margin-bottom: 1rem; color: var(--text-color, #24292e); font-size: 1.1rem;}
-  .pwd-modal input { width: 100%; margin-bottom: 1rem; padding: 0.6rem 0.75rem; box-sizing: border-box; border: 1px solid var(--main-border-color, #e1e4e8); border-radius: 6px; background-color: var(--main-bg, #ffffff); color: var(--text-color, #24292e); }
-  .pwd-modal input:focus { outline: none; border-color: #007bff; }
-  .pwd-modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
-  
-  /* 다크모드 변수 */
-  [data-mode="dark"] .comments-container, [data-mode="dark"] .pwd-modal {
-    --main-border-color: #3e3e42; --text-color: #d1d5da; --text-muted-color: #8b949e; --main-bg: #212121; --btn-bg-color: #3e3e42; --btn-hover-color: #58a6ff; --link-color: #58a6ff;
-  }
-
-  /* --- 폰트 강제 상속 (입력창, 버튼, Placeholder) --- */
-  .comment-input,
-  .anon-input,
-  .btn-submit,
-  .btn-action-text {
-    font-family: inherit !important;
-  }
-
-  .comment-input::placeholder,
-  .anon-input::placeholder {
-    font-family: inherit !important;
-  }
-
-  /* --- 더보기 버튼 스타일 --- */
+  /* 더보기 버튼 스타일: 차분한 텍스트 컬러 */
   .btn-load-more {
-    padding: 0.6rem 1.5rem;
-    background-color: transparent;
-    color: var(--text-color, #24292e);
-    border: 1px solid var(--main-border-color, #e1e4e8);
-    border-radius: 6px;
-    font-size: 0.9rem;
-    font-family: inherit;
-    cursor: pointer;
+    padding: 0.6rem 1.5rem; 
+    background-color: transparent; 
+    color: var(--text-color, #24292e); /* 테마 기본 텍스트 색상 사용 */
+    border: 1px solid var(--main-border-color, #e1e4e8); /* 테두리 추가로 뚜렷하게 */
+    border-radius: 18px; 
+    font-size: 0.9rem; 
+    font-weight: 600;
+    font-family: inherit; 
+    cursor: pointer; 
     transition: background-color 0.2s ease;
   }
-  .btn-load-more:hover {
-    background-color: rgba(0, 0, 0, 0.05);
+  .btn-load-more:hover { 
+    background-color: rgba(0, 0, 0, 0.05); 
   }
-  [data-mode="dark"] .btn-load-more:hover {
-    background-color: rgba(255, 255, 255, 0.05);
+  
+  /* --- 다크모드 변수 매핑 --- */
+  [data-mode="dark"] .comments-container, [data-mode="dark"] .pwd-modal {
+    --main-border-color: #3e3e42; --text-color: #f1f1f1; --text-muted-color: #aaaaaa; --main-bg: #212121;
   }
+  [data-mode="dark"] .btn-submit { background-color: #3ea6ff; color: #0f0f0f; }
+  [data-mode="dark"] .btn-submit:hover { background-color: #65b8ff; }
+  [data-mode="dark"] .badge-owner { background-color: #f1f1f1; color: #0f0f0f; }
+  [data-mode="dark"] .btn-action-text:hover { background-color: rgba(255,255,255,0.1); color: #f1f1f1; }
+  [data-mode="dark"] .btn-load-more { color: #3ea6ff; }
+  [data-mode="dark"] .btn-load-more:hover { background-color: rgba(62, 166, 255, 0.15); }
+  [data-mode="dark"] .admin-status-text { color: #3ea6ff; }
+
+  /* 비밀번호 모달 */
+  .pwd-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: none; align-items: center; justify-content: center; z-index: 1000; }
+  .pwd-modal { background: var(--main-bg, #ffffff); padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.2); width: 300px; max-width: 90%; text-align: center; border: 1px solid var(--main-border-color, #e1e4e8); }
+  .pwd-modal h4 { margin-top: 0; margin-bottom: 1rem; color: var(--text-color, #0f1419); font-size: 1.1rem; font-weight: 600;}
+  .pwd-modal input { width: 100%; margin-bottom: 1rem; padding: 0.6rem 0.75rem; box-sizing: border-box; border: 1px solid var(--main-border-color, #e1e4e8); border-radius: 6px; background-color: transparent; color: var(--text-color, #0f1419); }
+  .pwd-modal input:focus { outline: none; border-color: #065fd4; }
+  .pwd-modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
+
+  /* 폰트 상속 */
+  .comment-input, .anon-input, .btn-submit, .btn-action-text { font-family: inherit !important; }
+  .comment-input::placeholder, .anon-input::placeholder { font-family: inherit !important; }
 </style>
 
 <div id="custom-comments" class="comments-container">
   <div class="comments-header">
     <h3 class="comments-title" id="hidden-admin-trigger" title="더블 클릭하면 관리자로 로그인합니다">
-      Comments <span class="comments-count" id="comment-count">0</span>
+      댓글 <span class="comments-count" id="comment-count">0</span>
     </h3>
   </div>
 
   <div class="comment-writing-section" style="margin-bottom: 2.5rem;">
-    <div class="comment-form-wrapper">
-      <div class="form-inner">
-        
-        <div id="anonymous-area">
-          <div class="anonymous-inputs">
-            <input type="text" id="anon-nickname" class="anon-input" placeholder="닉네임" />
-            <input type="password" id="anon-password" class="anon-input" placeholder="비밀번호" />
-            <input type="email" id="anon-email" class="anon-input" placeholder="이메일 (답글 알림용, 선택)" />
+    <div style="display: flex; gap: 1rem;">
+      <!-- 내 프로필 영역 -->
+      <div id="current-user-avatar-container">
+        <div class="css-avatar" style="background-color: #9ca3af;">U</div>
+      </div>
+      
+      <div class="comment-form-wrapper" style="flex-grow: 1;">
+        <div class="form-inner">
+          <div id="anonymous-area">
+            <div class="anonymous-inputs">
+              <input type="text" id="anon-nickname" class="anon-input" placeholder="닉네임" />
+              <input type="password" id="anon-password" class="anon-input" placeholder="비밀번호" />
+              <input type="email" id="anon-email" class="anon-input" placeholder="이메일 (답글 알림용, 선택)" />
+            </div>
+          </div>
+
+          <textarea id="comment-textarea" class="comment-input" placeholder="댓글 추가..." rows="1"></textarea>
+          
+          <div class="form-actions">
+            <div id="admin-status" class="admin-status-text">
+              <span>👑 작성자 로그인됨</span>
+              <button type="button" class="btn-logout" id="btn-logout">로그아웃</button>
+            </div>
+            <button type="button" class="btn-submit" id="btn-submit-comment" style="margin-left: auto;">댓글 남기기</button>
           </div>
         </div>
-
-        <textarea id="comment-textarea" class="comment-input" placeholder="글에 대한 자유로운 의견을 남겨주세요." rows="3"></textarea>
-        
-        <div class="form-actions">
-          <div id="admin-status" class="admin-status-text">
-            <span>👑 작성자 로그인됨</span>
-            <button type="button" class="btn-logout" id="btn-logout">로그아웃</button>
-          </div>
-          <button type="button" class="btn-submit" id="btn-submit-comment" style="margin-left: auto;">댓글 남기기</button>
-        </div>
-
       </div>
     </div>
   </div>
@@ -155,12 +203,11 @@
   </ul>
 
   <!-- 이전 댓글 더보기 버튼 -->
-  <div id="load-more-container" style="text-align: center; margin-top: 1.5rem; display: none;">
-    <button id="btn-load-more" class="btn-load-more">이전 댓글 더보기</button>
+  <div id="load-more-container" style="text-align: center; margin-top: 1rem; display: none;">
+    <button id="btn-load-more" class="btn-load-more">댓글 더보기 ⌵</button>
   </div>
 </div>
 
-<!-- 추가된 비밀번호 입력 모달 UI -->
 <div id="pwd-modal" class="pwd-modal-overlay">
   <div class="pwd-modal">
     <h4>비밀번호 확인</h4>
@@ -172,10 +219,8 @@
   </div>
 </div>
 
-<!-- EmailJS 라이브러리 및 초기화 -->
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 <script>
-  /* 발급받은 Public Key를 입력하세요 */
   emailjs.init("hJSResFQEGHGzkPhC");
 </script>
 
@@ -198,14 +243,14 @@
   const db = getFirestore(app);
 
   const postId = "{{ page.url }}";
-  const defaultAvatar = "https://ui-avatars.com/api/?name=U&background=f0f0f0&color=333";
+  const ADMIN_AVATAR = "/assets/img/profile.png";
   const ADMIN_EMAIL = "canach3@gmail.com";
 
-  /* DOM 요소 캐싱 */
   const anonymousArea = document.getElementById("anonymous-area");
   const textarea = document.getElementById("comment-textarea");
   const submitBtn = document.getElementById("btn-submit-comment");
   const adminStatus = document.getElementById("admin-status");
+  const currentUserAvatarContainer = document.getElementById("current-user-avatar-container");
 
   const anonNickname = document.getElementById("anon-nickname");
   const anonPassword = document.getElementById("anon-password");
@@ -216,7 +261,6 @@
 
   let currentUser = null;
 
-  /* 더블 클릭 시 숨겨진 관리자 로그인 실행 (개선됨) */
   hiddenAdminTrigger.addEventListener("dblclick", () => {
     if (!currentUser || currentUser.isAnonymous) {
       signInWithPopup(auth, new GoogleAuthProvider()).then((result) => {
@@ -234,17 +278,16 @@
     signOut(auth);
   });
 
-  /* 인증 상태 변화 감지 (관리자 UI 토글 - 개선됨) */
   onAuthStateChanged(auth, (user) => {
     currentUser = user;
     if (user && !user.isAnonymous && user.email === ADMIN_EMAIL) {
-      /* 블로그 주인으로 로그인 된 상태 */
       adminStatus.style.display = "inline-block";
       anonymousArea.style.display = "none";
+      currentUserAvatarContainer.innerHTML = `<img src="${ADMIN_AVATAR}" class="comment-avatar" alt="Avatar" />`;
     } else {
-      /* 익명 상태 혹은 다른 구글 계정(강제 로그아웃됨) */
       adminStatus.style.display = "none";
       anonymousArea.style.display = "block";
+      currentUserAvatarContainer.innerHTML = `<div class="css-avatar" style="background-color: #9ca3af;">U</div>`;
     }
   });
 
@@ -254,7 +297,22 @@
       .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
   };
 
-  /* 모달을 통한 비밀번호 입력 함수 (추가됨) */
+  function timeAgo(date) {
+    if (!date) return "방금 전";
+    const seconds = Math.floor((new Date() - date) / 1000);
+    let interval = seconds / 31536000;
+    if (interval > 1) return Math.floor(interval) + "년 전";
+    interval = seconds / 2592000;
+    if (interval > 1) return Math.floor(interval) + "개월 전";
+    interval = seconds / 86400;
+    if (interval > 1) return Math.floor(interval) + "일 전";
+    interval = seconds / 3600;
+    if (interval > 1) return Math.floor(interval) + "시간 전";
+    interval = seconds / 60;
+    if (interval > 1) return Math.floor(interval) + "분 전";
+    return "방금 전";
+  }
+
   function askPassword() {
     return new Promise((resolve) => {
       const modal = document.getElementById('pwd-modal');
@@ -276,18 +334,36 @@
       cancelBtn.onclick = () => { cleanup(); resolve(null); };
       confirmBtn.onclick = () => { cleanup(); resolve(input.value); };
       input.onkeydown = (e) => {
-        if (e.key === 'Enter') {
-          cleanup();
-          resolve(input.value);
-        } else if (e.key === 'Escape') {
-          cleanup();
-          resolve(null);
-        }
+        if (e.key === 'Enter') { cleanup(); resolve(input.value); } 
+        else if (e.key === 'Escape') { cleanup(); resolve(null); }
       };
     });
   }
 
-  /* 전역 함수 설정 */
+  /* --- 닉네임 기반으로 구글/유튜브 스타일 CSS 아바타 생성 함수 --- */
+  function getAvatarHtml(isAdmin, displayName, isReply = false) {
+    if (isAdmin) {
+      const sizeStyle = isReply ? 'style="width: 28px; height: 28px;"' : '';
+      return `<img src="${ADMIN_AVATAR}" class="comment-avatar" alt="Admin Avatar" ${sizeStyle}>`;
+    }
+    
+    const name = displayName ? displayName.trim() : 'U';
+    const initial = name.charAt(0).toUpperCase(); /* 첫 글자 추출 */
+    
+    /* 닉네임을 해시하여 예쁘고 세련된 색상 배열 중 하나를 무작위로 고정 선택 */
+    const colors = ['#1d4ed8', '#0369a1', '#0f766e', '#4d7c0f', '#b45309', '#b91c1c', '#be185d', '#7e22ce', '#4338ca', '#334155'];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const colorIndex = Math.abs(hash) % colors.length;
+    const bgColor = colors[colorIndex];
+    
+    const sizeStyle = isReply ? 'width: 28px; height: 28px; font-size: 0.8rem;' : '';
+    
+    return `<div class="css-avatar" style="background-color: ${bgColor}; ${sizeStyle}">${initial}</div>`;
+  }
+
   window.toggleReplyForm = function(id) {
     const form = document.getElementById("reply-form-" + id);
     form.style.display = form.style.display === "block" ? "none" : "block";
@@ -308,7 +384,6 @@
     const text = replyInput.value.trim();
     if (!text) return alert("내용을 입력하세요.");
 
-    /* 1. 입력창이 초기화되기 전에 작성자의 닉네임과 이메일을 미리 확실하게 백업해 둡니다. */
     let replierName = "익명 사용자";
     let currentReplierEmail = "";
     const isAdminUser = currentUser && !currentUser.isAnonymous && currentUser.email === ADMIN_EMAIL;
@@ -333,47 +408,25 @@
         const repliesQuery = query(collection(db, "comments"), where("parentId", "==", parentId));
         const repliesSnap = await getDocs(repliesQuery);
 
-        /* 2. Map을 사용하여 이메일 중복은 방지하되, 수신자의 실제 닉네임(displayName)은 보존합니다. */
         const targetUsers = new Map();
+        if (parentDoc.exists() && parentDoc.data().email) targetUsers.set(parentDoc.data().email, parentDoc.data().displayName);
         
-        if (parentDoc.exists() && parentDoc.data().email) {
-          targetUsers.set(parentDoc.data().email, parentDoc.data().displayName);
-        }
-        
-        repliesSnap.forEach((d) => {
-          if (d.data().email) {
-            targetUsers.set(d.data().email, d.data().displayName);
-          }
-        });
+        repliesSnap.forEach((d) => { if (d.data().email) targetUsers.set(d.data().email, d.data().displayName); });
 
-        /* 블로그 주인(카나코드)은 무조건 알림 수신 대상에 추가 */
         targetUsers.set(ADMIN_EMAIL, "카나코드");
-
-        /* 방금 답글을 쓴 본인에게는 알림이 가지 않도록 삭제 */
         targetUsers.delete(currentReplierEmail);
 
         if (targetUsers.size > 0) {
           const emailPromises = Array.from(targetUsers.entries()).map(([email, name]) => {
-            const templateParams = {
-              to_email: email,
-              to_name: name,             /* 이제 "구독자"가 아닌 실제 닉네임이 들어갑니다 */
-              reply_name: replierName,   /* 실제 답글을 단 사람의 닉네임이 들어갑니다 */
-              reply_content: text,
-              post_link: window.location.href
-            };
+            const templateParams = { to_email: email, to_name: name, reply_name: replierName, reply_content: text, post_link: window.location.href };
             return emailjs.send("service_n6vjcvi", "template_s4as7uj", templateParams);
           });
-
           await Promise.all(emailPromises);
-          console.log(`총 ${targetUsers.size}명에게 알림 이메일 발송 완료`);
         }
-      } catch (e) {
-        console.error("이메일 알림 발송 중 에러 발생:", e);
-      }
+      } catch (e) { console.error("알림 에러:", e); }
     });
   };
 
-  /* 수정 로직 개선 (모달 연동 및 권한 체크) */
   window.saveEdit = async function(id) {
     const newContent = document.getElementById("edit-input-" + id).value.trim();
     if (!newContent) return alert("내용을 입력해주세요.");
@@ -382,77 +435,49 @@
     let pwd = null;
     const isAdminUser = currentUser && !currentUser.isAnonymous && currentUser.email === ADMIN_EMAIL;
 
-    /* 블로그 주인이 아닐 때만 커스텀 모달로 비밀번호 요구 */
-    if (!isAdminUser) {
-      pwd = await askPassword();
-      if (!pwd) return;
-    }
+    if (!isAdminUser) { pwd = await askPassword(); if (!pwd) return; }
 
     try {
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         const data = docSnap.data();
-        if (data.isAdmin && !isAdminUser) {
-          return alert("관리자만 수정할 수 있습니다.");
-        }
-        if (!data.isAdmin && data.password !== pwd && !isAdminUser) {
-          return alert("비밀번호가 일치하지 않습니다.");
-        }
+        if (data.isAdmin && !isAdminUser) return alert("관리자만 수정할 수 있습니다.");
+        if (!data.isAdmin && data.password !== pwd && !isAdminUser) return alert("비밀번호가 일치하지 않습니다.");
         await updateDoc(docRef, { content: newContent });
         cancelEdit(id);
       }
     } catch(e) { alert("데이터 조회 오류 또는 권한이 없습니다."); }
   };
 
-  /* 삭제 로직 개선 (모달 연동 및 권한 체크) */
   window.confirmDelete = async function(id) {
     if (!confirm("정말 삭제하시겠습니까?")) return;
-    
     const docRef = doc(db, "comments", id);
     let pwd = null;
     const isAdminUser = currentUser && !currentUser.isAnonymous && currentUser.email === ADMIN_EMAIL;
 
-    /* 블로그 주인이 아닐 때만 커스텀 모달로 비밀번호 요구 */
-    if (!isAdminUser) {
-      pwd = await askPassword();
-      if (!pwd) return;
-    }
+    if (!isAdminUser) { pwd = await askPassword(); if (!pwd) return; }
 
     try {
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         const data = docSnap.data();
-        if (data.isAdmin && !isAdminUser) {
-          return alert("관리자만 삭제할 수 있습니다.");
-        }
-        if (!data.isAdmin && data.password !== pwd && !isAdminUser) {
-          return alert("비밀번호가 일치하지 않습니다.");
-        }
+        if (data.isAdmin && !isAdminUser) return alert("관리자만 삭제할 수 있습니다.");
+        if (!data.isAdmin && data.password !== pwd && !isAdminUser) return alert("비밀번호가 일치하지 않습니다.");
         await deleteDoc(docRef);
       }
     } catch (e) { alert("삭제 권한이 없습니다."); }
   };
 
-  /* 공통 댓글 등록 로직 분리 (관리자 판별 개선) */
   async function processCommentSubmission(textContent, parentId, onSuccessCallback) {
-    let docData = { 
-      postId: postId, 
-      parentId: parentId, 
-      content: textContent, 
-      createdAt: serverTimestamp(),
-      isAdmin: false
-    };
-
+    let docData = { postId: postId, parentId: parentId, content: textContent, createdAt: serverTimestamp(), isAdmin: false };
     const isAdminUser = currentUser && !currentUser.isAnonymous && currentUser.email === ADMIN_EMAIL;
 
-    /* 블로그 주인 로그인 상태 판별 */
     if (isAdminUser) {
       docData.uid = currentUser.uid;
-      docData.displayName = "카나코드"; /* 관리자 닉네임 고정 */
-      docData.photoURL = "/assets/img/profile.png";
+      docData.displayName = "카나코드";
       docData.isAdmin = true;
+      /* photoURL 저장을 완전히 제거 (동적으로 그리기 때문) */
     } else {
-      /* 일반 익명 유저 */
       const nickname = document.getElementById(parentId ? `reply-nickname-${parentId}` : "anon-nickname")?.value.trim() || anonNickname.value.trim();
       const password = document.getElementById(parentId ? `reply-password-${parentId}` : "anon-password")?.value.trim() || anonPassword.value.trim();
       const email = document.getElementById(parentId ? `reply-email-${parentId}` : "anon-email")?.value.trim() || anonEmail.value.trim();
@@ -464,97 +489,68 @@
         try {
           const userCredential = await signInAnonymously(auth);
           anonUid = userCredential.user.uid;
-        } catch (e) { return alert("익명 통신에 실패했습니다."); }
+        } catch (e) { return alert("서버 통신에 실패했습니다."); }
       }
       docData.uid = anonUid;
       docData.displayName = nickname;
-      docData.photoURL = `https://ui-avatars.com/api/?name=${encodeURIComponent(nickname)}&background=random`;
       docData.password = password;
       if (email) docData.email = email;
     }
 
-    try {
-      await addDoc(collection(db, "comments"), docData);
-      if (onSuccessCallback) onSuccessCallback();
-    } catch (error) {
-      console.error(error);
-      alert("댓글을 저장하는 중 오류가 발생했습니다.");
-    }
+    try { await addDoc(collection(db, "comments"), docData); if (onSuccessCallback) onSuccessCallback(); } 
+    catch (error) { console.error(error); alert("댓글을 저장하는 중 오류가 발생했습니다."); }
   }
 
-  /* 메인 부모 댓글 작성 */
   submitBtn.addEventListener("click", async () => {
     const text = textarea.value.trim();
     if (!text) return alert("댓글 내용을 입력하세요.");
 
-    /* 1. 입력창이 지워지기 전에 작성자 닉네임을 확실하게 백업 */
     let writerName = "익명 사용자";
     const isAdminUser = currentUser && !currentUser.isAnonymous && currentUser.email === ADMIN_EMAIL;
     
-    if (isAdminUser) {
-      writerName = "카나코드";
-    } else if (anonNickname && anonNickname.value.trim()) {
-      writerName = anonNickname.value.trim();
-    }
+    if (isAdminUser) { writerName = "카나코드"; } 
+    else if (anonNickname && anonNickname.value.trim()) { writerName = anonNickname.value.trim(); }
 
-    submitBtn.disabled = true;
-    submitBtn.textContent = "등록 중...";
+    submitBtn.disabled = true; submitBtn.textContent = "등록 중...";
 
     await processCommentSubmission(text, null, async () => {
-      
       textarea.value = "";
       if (anonNickname) anonNickname.value = "";
       if (anonPassword) anonPassword.value = "";
       if (anonEmail) anonEmail.value = "";
 
-      /* 2. 블로그 주인에게 새 댓글 알림 발송 시도 */
       try {
         if (!isAdminUser) {
-          const templateParams = {
-            to_email: ADMIN_EMAIL,
-            to_name: "카나코드",
-            reply_name: writerName,  /* 백업해둔 실제 닉네임 적용 */
-            reply_content: text,
-            post_link: window.location.href
-          };
+          const templateParams = { to_email: ADMIN_EMAIL, to_name: "카나코드", reply_name: writerName, reply_content: text, post_link: window.location.href };
           await emailjs.send("service_n6vjcvi", "template_s4as7uj", templateParams);
-          console.log("블로그 주인에게 새 댓글 알림 발송 완료");
         }
-      } catch (e) {
-        console.error("새 댓글 알림 발송 중 에러 발생:", e);
-      }
+      } catch (e) { console.error("알림 발송 에러:", e); }
     });
 
-    submitBtn.disabled = false;
-    submitBtn.textContent = "댓글 남기기";
+    submitBtn.disabled = false; submitBtn.textContent = "댓글";
   });
 
-  /* 실시간 댓글 불러오기 로직 및 페이지네이션 */
   const q = query(collection(db, "comments"), where("postId", "==", postId), orderBy("createdAt", "asc"));
 
-  /*  페이지네이션 상태 변수  */
-  let currentCommentLimit = 20; /* 처음에 보여줄 부모 댓글 개수 */
-  const COMMENTS_PER_PAGE = 20; /* 더보기 클릭 시 추가할 개수 */
+  let currentCommentLimit = 20; 
+  const COMMENTS_PER_PAGE = 20; 
   let allParents = [];
   let allChildren = [];
 
-  /* 더보기 버튼 이벤트 리스너 */
   document.getElementById('btn-load-more').addEventListener('click', () => {
     currentCommentLimit += COMMENTS_PER_PAGE;
-    renderCommentsList(); /* 한도 증가 후 화면 다시 그리기 */
+    renderCommentsList();
   });
 
-  /* 댓글 리스트를 화면에 그리는 전용 함수 */
   function renderCommentsList() {
     commentsList.innerHTML = "";
     
     if (allParents.length === 0) {
-      commentsList.innerHTML = '<li class="comment-item" style="text-align: center; width:100%; padding: 20px;">가장 먼저 댓글을 남겨보세요!</li>';
+      commentsList.innerHTML = '<li class="comment-item" style="text-align: center; width:100%; padding: 30px; font-weight: 500; font-size: 0.95rem;">첫 번째 댓글을 남겨보세요!</li>';
       document.getElementById('load-more-container').style.display = 'none';
       return;
     }
 
-    /* 현재 한도(currentCommentLimit)까지만 잘라서 보여주기 */
     const parentsToShow = allParents.slice(0, currentCommentLimit);
     
     parentsToShow.forEach((data) => {
@@ -562,48 +558,40 @@
       renderComment(data, replies);
     });
 
-    /* 남은 댓글이 더 있으면 버튼 표시, 없으면 숨김 */
     const loadMoreContainer = document.getElementById('load-more-container');
-    if (allParents.length > currentCommentLimit) {
-      loadMoreContainer.style.display = 'block';
-    } else {
-      loadMoreContainer.style.display = 'none';
-    }
+    if (allParents.length > currentCommentLimit) { loadMoreContainer.style.display = 'block'; } 
+    else { loadMoreContainer.style.display = 'none'; }
   }
 
-  /* 실시간 데이터 감지 */
   onSnapshot(q, (snapshot) => {
     const allDocs = [];
     snapshot.forEach(doc => allDocs.push({ id: doc.id, ...doc.data() }));
     
-    /* 부모와 자식 대댓글 분리 후 부모는 최신순(역순)으로 정렬 */
     allParents = allDocs.filter(d => !d.parentId).reverse(); 
     allChildren = allDocs.filter(d => d.parentId);
     
-    /* 댓글 갯수 카운트 업데이트 */
     commentCountEl.textContent = allParents.length + allChildren.length;
-
-    /* 리스트 렌더링 호출 */
     renderCommentsList();
   });
 
   function renderComment(data, replies) {
-    const dateStr = data.createdAt ? data.createdAt.toDate().toLocaleString() : "방금 전";
+    const timeStr = timeAgo(data.createdAt ? data.createdAt.toDate() : null);
     
     const commentHtml = `
       <li class="comment-item" id="comment-${data.id}">
-        <img src="${data.isAdmin ? '/assets/img/profile.png' : (escapeHtml(data.photoURL) || defaultAvatar)}" alt="Avatar" class="comment-avatar">
+        <!-- 순수 CSS 기반 텍스트 아바타 적용 -->
+        ${getAvatarHtml(data.isAdmin, data.displayName, false)}
         <div class="comment-content">
           <div class="comment-meta">
-            <span class="comment-author">${escapeHtml(data.displayName)}</span>
             ${data.isAdmin ? '<span class="badge-owner">작성자</span>' : ""}
-            <span class="comment-date">${dateStr}</span>
+            <span class="comment-author">${escapeHtml(data.displayName)}</span>
+            <span class="comment-date">${timeStr}</span>
           </div>
           
           <div id="text-${data.id}" class="comment-text">${escapeHtml(data.content).replace(/\n/g, "<br>")}</div>
           
           <div class="edit-area" id="edit-area-${data.id}">
-            <textarea class="comment-input" id="edit-input-${data.id}" rows="3">${escapeHtml(data.content)}</textarea>
+            <textarea class="comment-input" id="edit-input-${data.id}" rows="2">${escapeHtml(data.content)}</textarea>
             <div class="form-actions" style="margin-top:0.5rem; justify-content: flex-end;">
               <button class="btn-action-text" onclick="window.cancelEdit('${data.id}')" style="margin-right: 0.5rem;">취소</button>
               <button class="btn-submit" onclick="window.saveEdit('${data.id}')">저장</button>
@@ -611,7 +599,7 @@
           </div>
 
           <div class="comment-actions">
-            <button type="button" class="btn-action-text" onclick="window.toggleReplyForm('${data.id}')">답글 달기</button>
+            <button type="button" class="btn-action-text" onclick="window.toggleReplyForm('${data.id}')">답글</button>
             <button type="button" class="btn-action-text" onclick="window.startEdit('${data.id}')">수정</button>
             <button type="button" class="btn-action-text" onclick="window.confirmDelete('${data.id}')">삭제</button>
           </div>
@@ -623,7 +611,10 @@
                 <input type="password" id="reply-password-${data.id}" class="anon-input" placeholder="비밀번호" />
                 <input type="email" id="reply-email-${data.id}" class="anon-input" placeholder="이메일 (답글 알림용, 선택)" />
               </div>
-              <textarea class="comment-input" id="reply-input-${data.id}" placeholder="답글을 입력하세요." rows="2"></textarea>
+              <div style="display:flex; gap: 0.8rem;">
+                ${getAvatarHtml(currentUser && currentUser.email === ADMIN_EMAIL, null, true)}
+                <textarea class="comment-input" id="reply-input-${data.id}" placeholder="답글 추가..." rows="1" style="flex-grow:1;"></textarea>
+              </div>
               <div class="form-actions" style="justify-content: flex-end;">
                 <button class="btn-submit" onclick="window.submitReply('${data.id}')">답글 남기기</button>
               </div>
@@ -634,12 +625,12 @@
             <div class="reply-container">
               ${replies.map(r => `
                   <div class="reply-item">
-                    <img src="${r.isAdmin ? '/assets/img/profile.png' : (escapeHtml(r.photoURL) || defaultAvatar)}" class="comment-avatar">
+                    ${getAvatarHtml(r.isAdmin, r.displayName, true)}
                     <div style="flex-grow:1;">
                       <div class="comment-meta">
-                        <span class="comment-author">${escapeHtml(r.displayName)}</span>
                         ${r.isAdmin ? '<span class="badge-owner">작성자</span>' : ""}
-                        <span class="comment-date">${r.createdAt ? r.createdAt.toDate().toLocaleString() : "방금 전"}</span>
+                        <span class="comment-author">${escapeHtml(r.displayName)}</span>
+                        <span class="comment-date">${timeAgo(r.createdAt ? r.createdAt.toDate() : null)}</span>
                       </div>
                       <div id="text-${r.id}" class="comment-text">${escapeHtml(r.content).replace(/\n/g, "<br>")}</div>
                       
@@ -667,21 +658,14 @@
   }
 </script>
 
-
 <script>
   (function() {
-    /* 1. 이동시킬 커스텀 댓글 영역 찾기 */
     const commentsContainer = document.getElementById('custom-comments');
-    
-    /* 2. 테마의 Footer 요소 찾기 (tail-wrapper 안의 footer) */
     const tailWrapper = document.getElementById('tail-wrapper');
     const siteFooter = tailWrapper ? tailWrapper.querySelector('footer') : null;
     
-    /* 3. 댓글 영역을 Footer 바로 위(상단)로 이동 */
     if (commentsContainer && siteFooter) {
       siteFooter.parentNode.insertBefore(commentsContainer, siteFooter);
-      
-      /* 네비게이션 및 푸터와의 시각적 간격 띄우기 */
       commentsContainer.style.marginTop = '2.5rem';
       commentsContainer.style.marginBottom = '2.5rem';
     }
