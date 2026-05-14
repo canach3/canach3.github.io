@@ -6,7 +6,7 @@ categories: [Data Structure]
 tags: [data structure, 자료구조, doubly linked list, 이중연결리스트]
 description: "이중 연결 리스트(Doubly Linked List)에 대한 개념을 알아보고 코드로 구현해보자"
 image:
-  path: /assets/img/posts/2026-04-17-trie/cover.png  # 배경으로 쓸 이미지 경로
+  path: /assets/img/posts/2026-05-11-doubly-linked-list/cover.png  # 배경으로 쓸 이미지 경로
 math: true # 수학 수식 사용
 toc: false # 오른쪽 목차 유무 설정
 ---
