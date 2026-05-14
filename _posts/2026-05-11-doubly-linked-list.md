@@ -27,7 +27,7 @@ toc: false # 오른쪽 목차 유무 설정
 
 #### 단일 연결 리스트 구조
 
-![image.png](image.png)
+<img src="/assets/img/posts/2026-05-11-doubly-linked-list/image1.png" alt="data structure 단일 연결 리스트" width="100">
 
 **단일 연결 리스트**를 이루고 있는 각 노드는 다음 정보를 가지고 있다.
 
@@ -36,7 +36,7 @@ toc: false # 오른쪽 목차 유무 설정
 
 #### 이중 연결 리스트 구조
 
-![image.png](image%201.png)
+<img src="/assets/img/posts/2026-05-11-doubly-linked-list/image2.png" alt="data structure 이중 연결 리스트" width="100">
 
 **이중 연결 리스트**를 이루고 있는 각 노드는 다음 정보를 가지고 있다.
 
