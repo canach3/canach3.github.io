@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이중 연결 리스트 삭제 애니메이션</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 부드러운 애니메이션 전환을 위한 CSS */
+        .node, .pointer, .code-line, path, g {
+            transition: all 0.5s ease-in-out;
+        }
+        .highlight-line {
+            background-color: rgba(254, 240, 138, 0.5); /* Tailwind yellow-200 */
+            border-left: 4px solid #eab308; /* Tailwind yellow-500 */
+        }
+        .code-line {
+            border-left: 4px solid transparent;
+            padding-left: 8px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 p-6 font-sans">
+
+<div class="max-w-7xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
+
+    <div class="p-6 flex flex-col gap-6">
+        
+        <!-- 상단: 코드 영역 -->
+        <div class="w-full bg-gray-900 rounded-lg p-5 text-base font-mono text-gray-300 overflow-x-auto shadow-inner relative">
+            <div class="code-line py-1 text-gray-500">// 처음부터 탐색할 필요 없이, 즉석에서 앞뒤 노드를 서로 연결하면 된다.</div>
+            <div id="code-0" class="code-line py-1">prevNode.next = nextNode;</div>
+            <div id="code-1" class="code-line py-1">nextNode.prev = prevNode;</div>
+        </div>
+
+        <!-- 하단: 시각화 영역 -->
+        <div class="w-full flex flex-col justify-center">
+
+            <!-- SVG 애니메이션 캔버스 -->
+            <div class="w-full bg-white border border-gray-200 rounded-lg overflow-hidden relative" style="height: 320px;">
+                <svg width="100%" height="100%" viewBox="0 0 1260 320" class="absolute top-0 left-0">
+                    <defs>
+                        <!-- 기본 화살표 머리 -->
+                        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#4B5563" />
+                        </marker>
+                        <!-- 우회 (Next) 화살표 머리 (파란색) -->
+                        <marker id="arrow-next" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#3B82F6" />
+                        </marker>
+                        <!-- 우회 (Prev) 화살표 머리 (보라색) -->
+                        <marker id="arrow-prev" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#8B5CF6" />
+                        </marker>
+                    </defs>
+
+                    <!-- 기본 연결 화살표들 -->
+                    <g id="base-arrows">
+                        <!-- 10 <-> 20 -->
+                        <path d="M 170 135 L 240 135" stroke="#4B5563" stroke-width="3" fill="none" marker-end="url(#arrow)" />
+                        <path d="M 250 155 L 180 155" stroke="#4B5563" stroke-width="3" fill="none" marker-end="url(#arrow)" />
+
+                        <!-- 20 <-> 30 -->
+                        <path d="M 370 135 L 440 135" stroke="#4B5563" stroke-width="3" fill="none" marker-end="url(#arrow)" />
+                        <path d="M 450 155 L 380 155" stroke="#4B5563" stroke-width="3" fill="none" marker-end="url(#arrow)" />
+
+                        <!-- 30 <-> 40 -->
+                        <path d="M 570 135 L 640 135" stroke="#4B5563" stroke-width="3" fill="none" marker-end="url(#arrow)" />
+                        <path d="M 650 155 L 580 155" stroke="#4B5563" stroke-width="3" fill="none" marker-end="url(#arrow)" />
+
+                        <!-- 40 <-> 50 (삭제 후 흐려짐) -->
+                        <path id="arrow-next-4-5" d="M 770 135 L 840 135" stroke="#4B5563" stroke-width="3" fill="none" marker-end="url(#arrow)" />
+                        <path id="arrow-prev-5-4" d="M 850 155 L 780 155" stroke="#4B5563" stroke-width="3" fill="none" marker-end="url(#arrow)" />
+
+                        <!-- 50 <-> 60 (삭제 후 흐려짐) -->
+                        <path id="arrow-next-5-6" d="M 970 135 L 1040 135" stroke="#4B5563" stroke-width="3" fill="none" marker-end="url(#arrow)" />
+                        <path id="arrow-prev-6-5" d="M 1050 155 L 980 155" stroke="#4B5563" stroke-width="3" fill="none" marker-end="url(#arrow)" />
+                    </g>
+                    
+                    <!-- 우회(Bypass) 연결 화살표들 (초기 투명) -->
+                    <!-- prevNode.next = nextNode -->
+                    <path id="bypass-next" d="M 770 135 Q 905 40 1040 135" stroke="#3B82F6" stroke-width="4" stroke-dasharray="5,5" fill="none" marker-end="url(#arrow-next)" opacity="0" />
+                    <!-- nextNode.prev = prevNode -->
+                    <path id="bypass-prev" d="M 1050 155 Q 915 250 780 155" stroke="#8B5CF6" stroke-width="4" stroke-dasharray="5,5" fill="none" marker-end="url(#arrow-prev)" opacity="0" />
+
+                    <!-- 노드 그룹 1 -->
+                    <g id="node-1" transform="translate(50, 120)">
+                        <rect width="120" height="50" rx="6" fill="#F3F4F6" stroke="#9CA3AF" stroke-width="2"/>
+                        <rect x="0" y="0" width="30" height="50" fill="#E5E7EB" class="rounded-l-md border-r border-gray-300"/>
+                        <rect x="90" y="0" width="30" height="50" fill="#E5E7EB" class="rounded-r-md border-l border-gray-300"/>
+                        <circle cx="15" cy="35" r="3" fill="#4B5563" />
+                        <circle cx="105" cy="15" r="3" fill="#4B5563" />
+                        <text x="60" y="31" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="18" fill="#374151">10</text>
+                    </g>
+
+                    <!-- 노드 그룹 2 -->
+                    <g id="node-2" transform="translate(250, 120)">
+                        <rect width="120" height="50" rx="6" fill="#F3F4F6" stroke="#9CA3AF" stroke-width="2"/>
+                        <rect x="0" y="0" width="30" height="50" fill="#E5E7EB" class="rounded-l-md border-r border-gray-300"/>
+                        <rect x="90" y="0" width="30" height="50" fill="#E5E7EB" class="rounded-r-md border-l border-gray-300"/>
+                        <circle cx="15" cy="35" r="3" fill="#4B5563" />
+                        <circle cx="105" cy="15" r="3" fill="#4B5563" />
+                        <text x="60" y="31" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="18" fill="#374151">20</text>
+                    </g>
+
+                    <!-- 노드 그룹 3 -->
+                    <g id="node-3" transform="translate(450, 120)">
+                        <rect width="120" height="50" rx="6" fill="#F3F4F6" stroke="#9CA3AF" stroke-width="2"/>
+                        <rect x="0" y="0" width="30" height="50" fill="#E5E7EB" class="rounded-l-md border-r border-gray-300"/>
+                        <rect x="90" y="0" width="30" height="50" fill="#E5E7EB" class="rounded-r-md border-l border-gray-300"/>
+                        <circle cx="15" cy="35" r="3" fill="#4B5563" />
+                        <circle cx="105" cy="15" r="3" fill="#4B5563" />
+                        <text x="60" y="31" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="18" fill="#374151">30</text>
+                    </g>
+
+                    <!-- 노드 그룹 4 (prevNode) -->
+                    <g id="node-4" transform="translate(650, 120)">
+                        <rect width="120" height="50" rx="6" fill="#F3F4F6" stroke="#9CA3AF" stroke-width="2"/>
+                        <rect x="0" y="0" width="30" height="50" fill="#E5E7EB" class="rounded-l-md border-r border-gray-300"/>
+                        <rect x="90" y="0" width="30" height="50" fill="#E5E7EB" class="rounded-r-md border-l border-gray-300"/>
+                        <circle cx="15" cy="35" r="3" fill="#4B5563" />
+                        <circle id="node-4-next-dot" cx="105" cy="15" r="3" fill="#4B5563" />
+                        <text x="60" y="31" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="18" fill="#374151">40</text>
+                        
+                        <!-- prevNode 라벨 -->
+                        <g id="label-prevNode" transform="translate(60, 85)">
+                            <rect x="-40" y="0" width="80" height="24" rx="4" fill="#3B82F6" />
+                            <text x="0" y="16" text-anchor="middle" font-weight="bold" fill="white" font-size="12">prevNode</text>
+                            <path d="M 0 -10 L 0 0" stroke="#3B82F6" stroke-width="2" marker-end="url(#arrow-next)"/>
+                        </g>
+                    </g>
+
+                    <!-- 노드 그룹 5 (targetNode) -->
+                    <g id="node-5" transform="translate(850, 120)">
+                        <rect width="120" height="50" rx="6" fill="#FEE2E2" stroke="#EF4444" stroke-width="3"/>
+                        <rect x="0" y="0" width="30" height="50" fill="#FECACA" class="rounded-l-md border-r border-red-300"/>
+                        <rect x="90" y="0" width="30" height="50" fill="#FECACA" class="rounded-r-md border-l border-red-300"/>
+                        <circle cx="15" cy="35" r="3" fill="#B91C1C" />
+                        <circle cx="105" cy="15" r="3" fill="#B91C1C" />
+                        <text x="60" y="31" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="18" fill="#991B1B">50</text>
+                        
+                        <!-- targetNode 라벨 -->
+                        <g transform="translate(60, -35)">
+                            <text x="0" y="0" text-anchor="middle" font-weight="bold" fill="#EF4444">targetNode</text>
+                            <path d="M 0 5 L 0 25" stroke="#EF4444" stroke-width="2" marker-end="url(#arrow)"/>
+                        </g>
+                    </g>
+
+                    <!-- 노드 그룹 6 (nextNode) -->
+                    <g id="node-6" transform="translate(1050, 120)">
+                        <rect width="120" height="50" rx="6" fill="#F3F4F6" stroke="#9CA3AF" stroke-width="2"/>
+                        <rect x="0" y="0" width="30" height="50" fill="#E5E7EB" class="rounded-l-md border-r border-gray-300"/>
+                        <rect x="90" y="0" width="30" height="50" fill="#E5E7EB" class="rounded-r-md border-l border-gray-300"/>
+                        <circle id="node-6-prev-dot" cx="15" cy="35" r="3" fill="#4B5563" />
+                        <circle cx="105" cy="15" r="3" fill="#4B5563" />
+                        <text x="60" y="31" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="18" fill="#374151">60</text>
+
+                        <!-- nextNode 라벨 -->
+                        <g id="label-nextNode" transform="translate(60, 85)">
+                            <rect x="-40" y="0" width="80" height="24" rx="4" fill="#8B5CF6" />
+                            <text x="0" y="16" text-anchor="middle" font-weight="bold" fill="white" font-size="12">nextNode</text>
+                            <path d="M 0 -10 L 0 0" stroke="#8B5CF6" stroke-width="2" marker-end="url(#arrow-prev)"/>
+                        </g>
+                    </g>
+
+                </svg>
+            </div>
+
+            <!-- 컨트롤 버튼 -->
+            <div class="mt-6 flex justify-between items-center">
+                <div class="flex gap-2">
+                    <button id="btn-reset" onclick="setStep(0)" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md font-medium transition-colors">
+                        처음부터
+                    </button>
+                    <button id="btn-prev" onclick="changeStep(-1)" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md font-medium transition-colors" disabled>
+                        이전
+                    </button>
+                    <button id="btn-next" onclick="changeStep(1)" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md font-medium transition-colors shadow-md">
+                        다음 단계
+                    </button>
+                </div>
+                <div class="text-gray-500 font-medium">
+                    Step: <span id="step-indicator" class="text-indigo-600 font-bold">0</span> / 2
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentStep = 0;
+    const maxStep = 2;
+
+    // 각 스텝별 상태 정의
+    const stepsData = [
+        { codeLine: null, bypassNext: 0, bypassPrev: 0, targetOpacity: 1 },
+        { codeLine: 0, bypassNext: 1, bypassPrev: 0, targetOpacity: 1 },
+        { codeLine: 1, bypassNext: 1, bypassPrev: 1, targetOpacity: 0.3 } 
+    ];
+
+    function changeStep(delta) {
+        let newStep = currentStep + delta;
+        if (newStep >= 0 && newStep <= maxStep) {
+            setStep(newStep);
+        }
+    }
+
+    function setStep(step) {
+        currentStep = step;
+        const data = stepsData[step];
+
+        // 1. 코드 하이라이트 업데이트
+        for (let i = 0; i <= 1; i++) {
+            const line = document.getElementById(`code-${i}`);
+            if (line) {
+                if (data.codeLine === i) {
+                    line.classList.add('highlight-line');
+                } else {
+                    line.classList.remove('highlight-line');
+                }
+            }
+        }
+
+        // 2. 우회 화살표 나타나기 (애니메이션 효과)
+        const bypassNext = document.getElementById('bypass-next');
+        const bypassPrev = document.getElementById('bypass-prev');
+        
+        bypassNext.setAttribute('opacity', data.bypassNext);
+        bypassNext.style.strokeDasharray = data.bypassNext > 0 ? "none" : "5,5";
+        
+        bypassPrev.setAttribute('opacity', data.bypassPrev);
+        bypassPrev.style.strokeDasharray = data.bypassPrev > 0 ? "none" : "5,5";
+
+        // 3. 삭제 대상 노드 및 기존 화살표 투명도 처리 (삭제되는 모습)
+        document.getElementById('node-5').style.opacity = data.targetOpacity;
+        
+        // 40->50, 50->60 방향 화살표
+        document.getElementById('arrow-next-4-5').style.opacity = step >= 1 ? 0.2 : 1;
+        document.getElementById('arrow-next-5-6').style.opacity = data.targetOpacity;
+
+        // 60->50, 50->40 방향 화살표
+        document.getElementById('arrow-prev-6-5').style.opacity = step >= 2 ? 0.2 : 1;
+        document.getElementById('arrow-prev-5-4').style.opacity = data.targetOpacity;
+
+        // 도트 색상 변경 효과 (연결 변경 강조)
+        document.getElementById('node-4-next-dot').setAttribute('fill', data.bypassNext > 0 ? '#3B82F6' : '#4B5563');
+        document.getElementById('node-6-prev-dot').setAttribute('fill', data.bypassPrev > 0 ? '#8B5CF6' : '#4B5563');
+
+        // 4. 컨트롤 버튼 및 인디케이터
+        document.getElementById('btn-prev').disabled = (step === 0);
+        document.getElementById('btn-next').disabled = (step === maxStep);
+        document.getElementById('step-indicator').innerText = step;
+    }
+
+    // 초기화
+    setStep(0);
+</script>
+
+</body>
+</html>

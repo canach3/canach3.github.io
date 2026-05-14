@@ -76,14 +76,25 @@ while (prev.next != targetNode) {
 // targetNode를 건너뛰고 이전 노드와 다음 노드를 연결한다.
 prev.next = targetNode.next;
 ```
+<div style="margin-top: 150px;"></div>
 
-위 코드가 어떻게 동작하는 확인해보자.
+시뮬레이션을 통해 위 코드가 어떻게 동작하는 확인해보자.
 
-[시각화 자료]
+<div class="visualization-container" style="width: 100%; margin: 2rem 0;">
+  <iframe 
+    src="{{ '/assets/widgets/doubly-linked-list/single-delete.html' | relative_url }}" 
+    title="Linked List Node Deletion Animation"
+    width="100%" 
+    height="780px" 
+    style="border: 1px solid #e5e7eb; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);"
+    loading="lazy"
+    scrolling="auto">
+  </iframe>
+</div>
 
 포인터 연결 자체는 $O(1)$이지만, 이전 노드를 찾기 위한 탐색 과정 때문에 결과적으로  **$O(N)$의 시간**이 걸리게 된다. 
 
-<div style="margin-top: 150px;"></div>
+<div style="margin-top: 250px;"></div>
 
 #### **"이중 연결 리스트는 탐색이 필요 없다"**
 
@@ -102,9 +113,21 @@ prevNode.next = nextNode;
 nextNode.prev = prevNode;
 ```
 
-위 코드가 어떻게 동작하는지 확인해보자.
+<div style="margin-top: 150px;"></div>
 
-[시각화 자료]
+시뮬레이션을 통해 위 코드가 어떻게 동작하는 확인해보자.
+
+<div class="visualization-container" style="width: 100%; margin: 2rem 0;">
+  <iframe 
+    src="{{ '/assets/widgets/doubly-linked-list/double-delete.html' | relative_url }}" 
+    title="Linked List Node Deletion Animation"
+    width="100%" 
+    height="650px" 
+    style="border: 1px solid #e5e7eb; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);"
+    loading="lazy"
+    scrolling="auto">
+  </iframe>
+</div>
 
 <div style="margin-top: 150px;"></div>
 
@@ -118,7 +141,7 @@ nextNode.prev = prevNode;
 
 ## ◾ 이중 연결 리스트의 삽입
 
-이중 연결 리스트의 삽입 과정이다. 삭제와 마찬가지로 대상 노드의 양옆의 포인터(`prev`, `next`)만 재설정해주면 된다.
+이중 연결 리스트의 삽입 과정이다. 삭제와 마찬가지로 대상 노드의 양옆의 포인터(**`prev`**, **`next`**)만 재설정해주면 된다.
 
 1. 이전 노드의 **`next`**가 새로운 노드를 가리키게 바꾼다.
 2. 새로운 노드의 **`prev`**가 이전 노드를 가리키게 바꾼다.
@@ -136,10 +159,21 @@ newNode.prev = prevNode;
 newNode.next = nextNode;
 nextNode.prev = newNode;
 ```
+<div style="margin-top: 150px;"></div>
 
-위 코드가 어떻게 동작하는지 확인해보자.
+시뮬레이션을 통해 위 코드가 어떻게 동작하는 확인해보자.
 
-[시각화 자료]
+<div class="visualization-container" style="width: 100%; margin: 2rem 0;">
+  <iframe 
+    src="{{ '/assets/widgets/doubly-linked-list/double-insert.html' | relative_url }}" 
+    title="Linked List Node Deletion Animation"
+    width="100%" 
+    height="825px" 
+    style="border: 1px solid #e5e7eb; border-radius: 0.75rem; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);"
+    loading="lazy"
+    scrolling="auto">
+  </iframe>
+</div>
 
 <div style="margin-top: 250px;"></div> 
 

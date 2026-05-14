@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이중 연결 리스트 노드 삽입 애니메이션</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* 부드러운 애니메이션 전환을 위한 CSS */
+        .node, .pointer, .code-line, path, g {
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .highlight-line {
+            background-color: rgba(254, 240, 138, 0.5); /* Tailwind yellow-200 */
+            border-left: 4px solid #eab308; /* Tailwind yellow-500 */
+        }
+        .code-line {
+            border-left: 4px solid transparent;
+            padding-left: 8px;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 p-6 font-sans">
+
+<div class="max-w-7xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
+
+    <div class="p-6 flex flex-col gap-6">
+        
+        <!-- 상단: 코드 영역 -->
+        <div class="w-full bg-gray-900 rounded-lg p-5 text-base font-mono text-gray-300 overflow-x-auto shadow-inner relative">
+            <div class="code-line py-1 text-gray-500">// 이전 노드와 새로운 노드 연결</div>
+            <div id="code-0" class="code-line py-1">prevNode.next = newNode;</div>
+            <div id="code-1" class="code-line py-1">newNode.prev = prevNode;</div>
+            <br>
+            <div class="code-line py-1 text-gray-500">// 다음 노드와 새로운 노드 연결</div>
+            <div id="code-2" class="code-line py-1">newNode.next = nextNode;</div>
+            <div id="code-3" class="code-line py-1">nextNode.prev = newNode;</div>
+        </div>
+
+        <!-- 하단: 시각화 영역 -->
+        <div class="w-full flex flex-col justify-center">
+
+            <!-- SVG 애니메이션 캔버스 -->
+            <div class="w-full bg-white border border-gray-200 rounded-lg overflow-hidden relative" style="height: 380px;">
+                <svg width="100%" height="100%" viewBox="0 0 1260 380" class="absolute top-0 left-0">
+                    <defs>
+                        <!-- 기본 화살표 머리 -->
+                        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#4B5563" />
+                        </marker>
+                        <!-- 강조(초록) 화살표 머리 -->
+                        <marker id="arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#10B981" />
+                        </marker>
+                    </defs>
+
+                    <!-- 기본 연결 화살표들 (삽입 전의 기존 연결) -->
+                    <g id="base-arrows">
+                        <!-- 10 <-> 20 -->
+                        <path d="M 290 115 L 360 115" stroke="#4B5563" stroke-width="3" fill="none" marker-end="url(#arrow)" />
+                        <path d="M 370 135 L 300 135" stroke="#4B5563" stroke-width="3" fill="none" marker-end="url(#arrow)" />
+
+                        <!-- 20 <-> 40 (기존 연결, 삽입 시 끊어짐) -->
+                        <path id="old-next-20-40" d="M 490 115 L 760 115" stroke="#4B5563" stroke-width="3" fill="none" marker-end="url(#arrow)" />
+                        <path id="old-prev-40-20" d="M 770 135 L 500 135" stroke="#4B5563" stroke-width="3" fill="none" marker-end="url(#arrow)" />
+
+                        <!-- 40 <-> 50 -->
+                        <path d="M 890 115 L 960 115" stroke="#4B5563" stroke-width="3" fill="none" marker-end="url(#arrow)" />
+                        <path d="M 970 135 L 900 135" stroke="#4B5563" stroke-width="3" fill="none" marker-end="url(#arrow)" />
+                    </g>
+                    
+                    <!-- 새로운 연결 화살표들 (초기 투명, 곡선으로 새 노드를 향함) -->
+                    
+                    <!-- 1. prevNode.next = newNode -->
+                    <path id="new-arrow-1" d="M 490 115 Q 560 160 570 235" stroke="#10B981" stroke-width="4" stroke-dasharray="5,5" fill="none" marker-end="url(#arrow-green)" opacity="0" />
+                    <!-- 2. newNode.prev = prevNode -->
+                    <path id="new-arrow-2" d="M 580 255 Q 540 210 500 135" stroke="#10B981" stroke-width="4" stroke-dasharray="5,5" fill="none" marker-end="url(#arrow-green)" opacity="0" />
+                    <!-- 3. newNode.next = nextNode -->
+                    <path id="new-arrow-3" d="M 690 235 Q 730 160 770 115" stroke="#10B981" stroke-width="4" stroke-dasharray="5,5" fill="none" marker-end="url(#arrow-green)" opacity="0" />
+                    <!-- 4. nextNode.prev = newNode -->
+                    <path id="new-arrow-4" d="M 780 135 Q 740 210 700 255" stroke="#10B981" stroke-width="4" stroke-dasharray="5,5" fill="none" marker-end="url(#arrow-green)" opacity="0" />
+
+                    <!-- 노드 그룹 1 (10) -->
+                    <g id="node-1" transform="translate(170, 100)">
+                        <rect width="120" height="50" rx="6" fill="#F3F4F6" stroke="#9CA3AF" stroke-width="2"/>
+                        <rect x="0" y="0" width="30" height="50" fill="#E5E7EB" class="rounded-l-md border-r border-gray-300"/>
+                        <rect x="90" y="0" width="30" height="50" fill="#E5E7EB" class="rounded-r-md border-l border-gray-300"/>
+                        <circle cx="15" cy="35" r="3" fill="#4B5563" />
+                        <circle cx="105" cy="15" r="3" fill="#4B5563" />
+                        <text x="60" y="31" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="18" fill="#374151">10</text>
+                    </g>
+
+                    <!-- 노드 그룹 2 (20, prevNode) -->
+                    <g id="node-2" transform="translate(370, 100)">
+                        <rect width="120" height="50" rx="6" fill="#F3F4F6" stroke="#9CA3AF" stroke-width="2"/>
+                        <rect x="0" y="0" width="30" height="50" fill="#E5E7EB" class="rounded-l-md border-r border-gray-300"/>
+                        <rect x="90" y="0" width="30" height="50" fill="#E5E7EB" class="rounded-r-md border-l border-gray-300"/>
+                        <circle cx="15" cy="35" r="3" fill="#4B5563" />
+                        <circle id="node-2-next-dot" cx="105" cy="15" r="3" fill="#4B5563" />
+                        <text x="60" y="31" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="18" fill="#374151">20</text>
+                        
+                        <!-- prevNode 라벨 -->
+                        <g transform="translate(60, -35)">
+                            <text x="0" y="0" text-anchor="middle" font-weight="bold" fill="#3B82F6">prevNode</text>
+                            <path d="M 0 5 L 0 25" stroke="#3B82F6" stroke-width="2" marker-end="url(#arrow)"/>
+                        </g>
+                    </g>
+
+                    <!-- 노드 그룹 3 (40, nextNode) -->
+                    <g id="node-4" transform="translate(770, 100)">
+                        <rect width="120" height="50" rx="6" fill="#F3F4F6" stroke="#9CA3AF" stroke-width="2"/>
+                        <rect x="0" y="0" width="30" height="50" fill="#E5E7EB" class="rounded-l-md border-r border-gray-300"/>
+                        <rect x="90" y="0" width="30" height="50" fill="#E5E7EB" class="rounded-r-md border-l border-gray-300"/>
+                        <circle id="node-4-prev-dot" cx="15" cy="35" r="3" fill="#4B5563" />
+                        <circle cx="105" cy="15" r="3" fill="#4B5563" />
+                        <text x="60" y="31" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="18" fill="#374151">40</text>
+                        
+                        <!-- nextNode 라벨 -->
+                        <g transform="translate(60, -35)">
+                            <text x="0" y="0" text-anchor="middle" font-weight="bold" fill="#8B5CF6">nextNode</text>
+                            <path d="M 0 5 L 0 25" stroke="#8B5CF6" stroke-width="2" marker-end="url(#arrow)"/>
+                        </g>
+                    </g>
+
+                    <!-- 노드 그룹 4 (50) -->
+                    <g id="node-5" transform="translate(970, 100)">
+                        <rect width="120" height="50" rx="6" fill="#F3F4F6" stroke="#9CA3AF" stroke-width="2"/>
+                        <rect x="0" y="0" width="30" height="50" fill="#E5E7EB" class="rounded-l-md border-r border-gray-300"/>
+                        <rect x="90" y="0" width="30" height="50" fill="#E5E7EB" class="rounded-r-md border-l border-gray-300"/>
+                        <circle cx="15" cy="35" r="3" fill="#4B5563" />
+                        <circle cx="105" cy="15" r="3" fill="#4B5563" />
+                        <text x="60" y="31" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="18" fill="#374151">50</text>
+                    </g>
+
+                    <!-- 새로운 노드 (30, newNode) - 초기에 아래쪽에 위치 -->
+                    <g id="node-new" transform="translate(570, 220)">
+                        <rect width="120" height="50" rx="6" fill="#D1FAE5" stroke="#10B981" stroke-width="3"/>
+                        <rect x="0" y="0" width="30" height="50" fill="#A7F3D0" class="rounded-l-md border-r border-emerald-400"/>
+                        <rect x="90" y="0" width="30" height="50" fill="#A7F3D0" class="rounded-r-md border-l border-emerald-400"/>
+                        <circle id="new-prev-dot" cx="15" cy="35" r="3" fill="#047857" />
+                        <circle id="new-next-dot" cx="105" cy="15" r="3" fill="#047857" />
+                        <text x="60" y="31" text-anchor="middle" font-family="monospace" font-weight="bold" font-size="18" fill="#065F46">30</text>
+                        
+                        <!-- newNode 라벨 -->
+                        <g transform="translate(60, 85)">
+                            <rect x="-40" y="0" width="80" height="24" rx="4" fill="#10B981" />
+                            <text x="0" y="16" text-anchor="middle" font-weight="bold" fill="white" font-size="12">newNode</text>
+                            <path d="M 0 -10 L 0 0" stroke="#10B981" stroke-width="2" marker-end="url(#arrow-green)"/>
+                        </g>
+                    </g>
+
+                </svg>
+            </div>
+
+            <!-- 컨트롤 버튼 -->
+            <div class="mt-6 flex justify-between items-center">
+                <div class="flex gap-2">
+                    <button id="btn-reset" onclick="setStep(0)" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md font-medium transition-colors">
+                        처음부터
+                    </button>
+                    <button id="btn-prev" onclick="changeStep(-1)" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-md font-medium transition-colors" disabled>
+                        이전
+                    </button>
+                    <button id="btn-next" onclick="changeStep(1)" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md font-medium transition-colors shadow-md">
+                        다음 단계
+                    </button>
+                </div>
+                <div class="text-gray-500 font-medium">
+                    Step: <span id="step-indicator" class="text-emerald-600 font-bold">0</span> / 5
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentStep = 0;
+    const maxStep = 5;
+
+    // 각 스텝별 상태 정의
+    const stepsData = [
+        // 0: 초기 상태
+        { codeLine: null, arrow1: 0, arrow2: 0, arrow3: 0, arrow4: 0, oldNextOp: 1, oldPrevOp: 1, newNodeY: 220 },
+        // 1: prevNode.next = newNode
+        { codeLine: 0, arrow1: 1, arrow2: 0, arrow3: 0, arrow4: 0, oldNextOp: 0.2, oldPrevOp: 1, newNodeY: 220 },
+        // 2: newNode.prev = prevNode
+        { codeLine: 1, arrow1: 1, arrow2: 1, arrow3: 0, arrow4: 0, oldNextOp: 0.2, oldPrevOp: 1, newNodeY: 220 },
+        // 3: newNode.next = nextNode
+        { codeLine: 2, arrow1: 1, arrow2: 1, arrow3: 1, arrow4: 0, oldNextOp: 0.2, oldPrevOp: 1, newNodeY: 220 },
+        // 4: nextNode.prev = newNode
+        { codeLine: 3, arrow1: 1, arrow2: 1, arrow3: 1, arrow4: 1, oldNextOp: 0.2, oldPrevOp: 0.2, newNodeY: 220 },
+        // 5: 완료 (노드가 위로 정렬됨)
+        { codeLine: null, arrow1: 1, arrow2: 1, arrow3: 1, arrow4: 1, oldNextOp: 0, oldPrevOp: 0, newNodeY: 100 }
+    ];
+
+    function changeStep(delta) {
+        let newStep = currentStep + delta;
+        if (newStep >= 0 && newStep <= maxStep) {
+            setStep(newStep);
+        }
+    }
+
+    function setStep(step) {
+        currentStep = step;
+        const data = stepsData[step];
+
+        // 1. 코드 하이라이트 업데이트
+        for (let i = 0; i <= 3; i++) {
+            const line = document.getElementById(`code-${i}`);
+            if (line) {
+                if (data.codeLine === i) {
+                    line.classList.add('highlight-line');
+                } else {
+                    line.classList.remove('highlight-line');
+                }
+            }
+        }
+
+        // 2. 화살표 시각화 업데이트
+        // 새 화살표들
+        document.getElementById('new-arrow-1').setAttribute('opacity', data.arrow1);
+        document.getElementById('new-arrow-1').style.strokeDasharray = data.arrow1 > 0 && step < 5 ? "none" : (step === 5 ? "none" : "5,5");
+        
+        document.getElementById('new-arrow-2').setAttribute('opacity', data.arrow2);
+        document.getElementById('new-arrow-2').style.strokeDasharray = data.arrow2 > 0 && step < 5 ? "none" : (step === 5 ? "none" : "5,5");
+        
+        document.getElementById('new-arrow-3').setAttribute('opacity', data.arrow3);
+        document.getElementById('new-arrow-3').style.strokeDasharray = data.arrow3 > 0 && step < 5 ? "none" : (step === 5 ? "none" : "5,5");
+        
+        document.getElementById('new-arrow-4').setAttribute('opacity', data.arrow4);
+        document.getElementById('new-arrow-4').style.strokeDasharray = data.arrow4 > 0 && step < 5 ? "none" : (step === 5 ? "none" : "5,5");
+
+        // 기존 화살표 (끊어짐 표현)
+        document.getElementById('old-next-20-40').style.opacity = data.oldNextOp;
+        document.getElementById('old-prev-40-20').style.opacity = data.oldPrevOp;
+
+        // 3. 도트 색상 변경 (포인터 활성화 표시)
+        document.getElementById('node-2-next-dot').setAttribute('fill', data.arrow1 > 0 ? '#10B981' : '#4B5563');
+        document.getElementById('new-prev-dot').setAttribute('fill', data.arrow2 > 0 ? '#10B981' : '#047857');
+        document.getElementById('new-next-dot').setAttribute('fill', data.arrow3 > 0 ? '#10B981' : '#047857');
+        document.getElementById('node-4-prev-dot').setAttribute('fill', data.arrow4 > 0 ? '#10B981' : '#4B5563');
+
+        // 4. 완료 스텝 (Step 5)에서 노드가 위로 올라가며 직선으로 재정렬
+        const newNodeGrp = document.getElementById('node-new');
+        newNodeGrp.setAttribute('transform', `translate(570, ${data.newNodeY})`);
+        
+        if (step === 5) {
+            // 정렬된 직선 화살표
+            document.getElementById('new-arrow-1').setAttribute('d', 'M 490 115 L 570 115');
+            document.getElementById('new-arrow-2').setAttribute('d', 'M 580 135 L 500 135');
+            document.getElementById('new-arrow-3').setAttribute('d', 'M 690 115 L 770 115');
+            document.getElementById('new-arrow-4').setAttribute('d', 'M 780 135 L 700 135');
+        } else {
+            // 다시 곡선 화살표로 복구
+            document.getElementById('new-arrow-1').setAttribute('d', 'M 490 115 Q 560 160 570 235');
+            document.getElementById('new-arrow-2').setAttribute('d', 'M 580 255 Q 540 210 500 135');
+            document.getElementById('new-arrow-3').setAttribute('d', 'M 690 235 Q 730 160 770 115');
+            document.getElementById('new-arrow-4').setAttribute('d', 'M 780 135 Q 740 210 700 255');
+        }
+
+        // 5. 컨트롤 버튼 및 인디케이터
+        document.getElementById('btn-prev').disabled = (step === 0);
+        document.getElementById('btn-next').disabled = (step === maxStep);
+        document.getElementById('step-indicator').innerText = step;
+    }
+
+    // 초기화
+    setStep(0);
+</script>
+
+</body>
+</html>
