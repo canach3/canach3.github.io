@@ -1,2 +1,2 @@
-## 주소
-https://canach3.github.io/
+## 블로그 주소
+https://canacode.blog/
